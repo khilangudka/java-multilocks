@@ -24,7 +24,7 @@
  * SUCH DAMAGE.
  */
 
-package lg.runtime.locks;
+package multilock;
 
 
 import java.util.concurrent.TimeUnit;
