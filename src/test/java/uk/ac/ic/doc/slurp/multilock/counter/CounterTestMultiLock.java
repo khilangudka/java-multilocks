@@ -24,15 +24,15 @@
  * SUCH DAMAGE.
  */
 
-package test.counter;
+package uk.ac.ic.doc.slurp.multilock.counter;
 
-public class CounterTestRWLock extends CounterTest {
+public class CounterTestMultiLock extends CounterTest {
 
     @Override
     public void inc(Counter c) {
-        c.wlock.lock();
+        c.mlock.lockWrite();
         c.inc();
-        c.wlock.unlock();
+        c.mlock.unlockWrite();
     }
 
     /**
@@ -40,7 +40,7 @@ public class CounterTestRWLock extends CounterTest {
      * @throws InterruptedException 
      */
     public static void main(String[] args) throws InterruptedException {
-        CounterTest c = new CounterTestRWLock();
+        CounterTest c = new CounterTestMultiLock();
         c.runExperiment();
     }
 

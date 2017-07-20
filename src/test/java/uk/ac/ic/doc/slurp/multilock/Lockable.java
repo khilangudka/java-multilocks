@@ -24,24 +24,13 @@
  * SUCH DAMAGE.
  */
 
-package test.counter;
+package uk.ac.ic.doc.slurp.multilock;
 
-public class CounterTestMultiLock extends CounterTest {
+import java.util.concurrent.locks.*;
 
-    @Override
-    public void inc(Counter c) {
-        c.mlock.lockWrite();
-        c.inc();
-        c.mlock.unlockWrite();
-    }
-
-    /**
-     * @param args
-     * @throws InterruptedException 
-     */
-    public static void main(String[] args) throws InterruptedException {
-        CounterTest c = new CounterTestMultiLock();
-        c.runExperiment();
-    }
-
+public abstract class Lockable {
+    public MultiLock mlock = new MultiLock(null);
+    public ReentrantReadWriteLock rwlock = new ReentrantReadWriteLock();
+    public Lock rlock = rwlock.readLock();
+    public Lock wlock = rwlock.writeLock();
 }

@@ -24,13 +24,12 @@
  * SUCH DAMAGE.
  */
 
-package test.bank;
+package uk.ac.ic.doc.slurp.multilock.bank;
 
 import java.io.FileNotFoundException;
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicLong;
 
-import test.Lockable;
+import uk.ac.ic.doc.slurp.multilock.Lockable;
 
 
 class Account extends Lockable {

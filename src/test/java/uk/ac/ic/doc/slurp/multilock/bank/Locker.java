@@ -24,7 +24,7 @@
  * SUCH DAMAGE.
  */
 
-package test.bank;
+package uk.ac.ic.doc.slurp.multilock.bank;
 
 public interface Locker {
 

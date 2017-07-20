@@ -24,7 +24,7 @@
  * SUCH DAMAGE.
  */
 
-package test.counter;
+package uk.ac.ic.doc.slurp.multilock.counter;
 
 import org.deuce.Atomic;
 
