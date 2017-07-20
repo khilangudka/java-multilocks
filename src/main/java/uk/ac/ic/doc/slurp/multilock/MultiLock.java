@@ -24,7 +24,7 @@
  * SUCH DAMAGE.
  */
 
-package multilock;
+package uk.ac.ic.doc.slurp.multilock;
 
 
 import java.util.concurrent.TimeUnit;

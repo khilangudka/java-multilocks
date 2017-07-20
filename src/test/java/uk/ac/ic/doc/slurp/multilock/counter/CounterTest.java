@@ -24,9 +24,9 @@
  * SUCH DAMAGE.
  */
 
-package test.counter;
+package uk.ac.ic.doc.slurp.multilock.counter;
 
-import test.Lockable;
+import uk.ac.ic.doc.slurp.multilock.Lockable;
 
 class Counter extends Lockable {
     long value = 0;
@@ -76,8 +76,8 @@ public abstract class CounterTest {
             double took = (System.currentTimeMillis() - start)/1000.0; // time in seconds
             long expected = nThreads*nIncs;
             double throughput = expected/took;
-            System.out.println("Expected counter value: " + expected);
-            System.out.println("Actual counter value: " + c.value);
+            System.out.println("Expected uk.ac.ic.doc.slurp.multilock.counter value: " + expected);
+            System.out.println("Actual uk.ac.ic.doc.slurp.multilock.counter value: " + c.value);
             System.out.println("Running time (secs): " + String.format("%.2f", took));
             String throughputStr = String.format("%.2f", throughput);
             System.out.println("incs/sec: " + throughputStr);
