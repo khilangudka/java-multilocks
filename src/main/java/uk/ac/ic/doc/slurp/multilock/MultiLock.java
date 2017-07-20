@@ -27,6 +27,9 @@
 package uk.ac.ic.doc.slurp.multilock;
 
 
+import sun.misc.Unsafe;
+
+import java.lang.reflect.Field;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.*;
 
@@ -309,7 +312,79 @@ public class MultiLock {
                 }
             }
         }
-        
+
+        final int getIntentionReadLockCount() {
+            return (int)isCount(getState());
+        }
+
+        final int getReadLockCount() {
+            return (int)sCount(getState());
+        }
+
+        final int getIntentionWriteLockCount() {
+            return (int)ixCount(getState());
+        }
+
+        final int getWriteLockCount() {
+            return (int)xCount(getState());
+        }
+
+        final int getIntentionReadHoldCount() {
+            if (getIntentionReadLockCount() == 0)
+                return 0;
+
+            final Thread current = Thread.currentThread();
+            final HoldCounter rh = cachedHoldCounter;
+            if (rh != null && rh.tid == getThreadId(current))
+                return (int)isCount(rh.state);
+
+            int count = (int)isCount(holdCounts.get().state);
+            //if (count == 0) readHolds.remove();
+            return count;
+        }
+
+        final int getReadHoldCount() {
+            if (getReadLockCount() == 0)
+                return 0;
+
+            final Thread current = Thread.currentThread();
+            final HoldCounter rh = cachedHoldCounter;
+            if (rh != null && rh.tid == getThreadId(current))
+                return (int)sCount(rh.state);
+
+            int count = (int)sCount(holdCounts.get().state);
+            //if (count == 0) readHolds.remove();
+            return count;
+        }
+
+        final int getIntentionWriteHoldCount() {
+            if (getIntentionWriteLockCount() == 0)
+                return 0;
+
+            final Thread current = Thread.currentThread();
+            final HoldCounter rh = cachedHoldCounter;
+            if (rh != null && rh.tid == getThreadId(current))
+                return (int)ixCount(rh.state);
+
+            int count = (int)ixCount(holdCounts.get().state);
+            //if (count == 0) readHolds.remove();
+            return count;
+        }
+
+
+        final int getWriteHoldCount() {
+            if (getWriteLockCount() == 0)
+                return 0;
+
+            final Thread current = Thread.currentThread();
+            final HoldCounter rh = cachedHoldCounter;
+            if (rh != null && rh.tid == getThreadId(current))
+                return (int)xCount(rh.state);
+
+            int count = (int)xCount(holdCounts.get().state);
+            //if (count == 0) readHolds.remove();
+            return count;
+        }
     }
     
     public boolean lockRead() {
@@ -371,5 +446,119 @@ public class MultiLock {
             owner.unlockIntentionWrite();
         }        
     }
-    
+
+    /**
+     * Queries the number of intention read locks held for this lock. This
+     * method is designed for use in monitoring system state, not for
+     * synchronization control.
+     * @return the number of intention read locks held
+     */
+    public int getIntentionReadLockCount() {
+        return sync.getIntentionReadLockCount();
+    }
+
+    /**
+     * Queries the number of read locks held for this lock. This
+     * method is designed for use in monitoring system state, not for
+     * synchronization control.
+     * @return the number of read locks held
+     */
+    public int getReadLockCount() {
+        return sync.getReadLockCount();
+    }
+
+    /**
+     * Queries the number of intention write locks held for this lock. This
+     * method is designed for use in monitoring system state, not for
+     * synchronization control.
+     * @return the number of intention write locks held
+     */
+    public int getIntentionWriteLockCount() {
+        return sync.getIntentionWriteLockCount();
+    }
+
+    /**
+     * Queries the number of write locks held for this lock. This
+     * method is designed for use in monitoring system state, not for
+     * synchronization control.
+     * @return the number of write locks held
+     */
+    public int getWriteLockCount() {
+        return sync.getWriteLockCount();
+    }
+
+    /**
+     * Queries the number of reentrant intention read holds on this lock by the
+     * current thread.  A reader thread has a hold on a lock for
+     * each lock action that is not matched by an unlock action.
+     *
+     * @return the number of holds on the intention read lock by the current thread,
+     *         or zero if the intention read lock is not held by the current thread
+     */
+    public int getIntentionReadHoldCount() {
+        return sync.getIntentionReadHoldCount();
+    }
+
+    /**
+     * Queries the number of reentrant read holds on this lock by the
+     * current thread.  A reader thread has a hold on a lock for
+     * each lock action that is not matched by an unlock action.
+     *
+     * @return the number of holds on the read lock by the current thread,
+     *         or zero if the read lock is not held by the current thread
+     */
+    public int getReadHoldCount() {
+        return sync.getReadHoldCount();
+    }
+
+    /**
+     * Queries the number of reentrant intention write holds on this lock by the
+     * current thread.  A reader thread has a hold on a lock for
+     * each lock action that is not matched by an unlock action.
+     *
+     * @return the number of holds on the intention write lock by the current thread,
+     *         or zero if the intention write lock is not held by the current thread
+     */
+    public int getIntentionWriteHoldCount() {
+        return sync.getIntentionWriteHoldCount();
+    }
+
+    /**
+     * Queries the number of reentrant write holds on this lock by the
+     * current thread.  A reader thread has a hold on a lock for
+     * each lock action that is not matched by an unlock action.
+     *
+     * @return the number of holds on the write lock by the current thread,
+     *         or zero if the write lock is not held by the current thread
+     */
+    public int getWriteHoldCount() {
+        return sync.getWriteHoldCount();
+    }
+
+    /**
+     * Returns the thread id for the given thread.  We must access
+     * this directly rather than via method Thread.getId() because
+     * getId() is not final, and has been known to be overridden in
+     * ways that do not preserve unique mappings.
+     */
+    static final long getThreadId(Thread thread) {
+        return UNSAFE.getLongVolatile(thread, TID_OFFSET);
+    }
+
+    // Unsafe mechanics
+    private static final sun.misc.Unsafe UNSAFE;
+    private static final long TID_OFFSET;
+    static {
+        try {
+            final Field singleoneInstanceField = Unsafe.class.getDeclaredField("theUnsafe");
+            singleoneInstanceField.setAccessible(true);
+            UNSAFE = (Unsafe) singleoneInstanceField.get(null);
+
+            final Class<?> tk = Thread.class;
+            TID_OFFSET = UNSAFE.objectFieldOffset
+                    (tk.getDeclaredField("tid"));
+        } catch (final Exception e) {
+            throw new Error(e);
+        }
+    }
 }
