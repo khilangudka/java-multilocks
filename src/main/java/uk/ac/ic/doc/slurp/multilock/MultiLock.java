@@ -29,6 +29,7 @@ package uk.ac.ic.doc.slurp.multilock;
 
 import sun.misc.Unsafe;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.*;
@@ -54,11 +55,16 @@ public class MultiLock {
     final ReadLock readLock;
     final WriteLock writeLock;
     
-    public MultiLock(MultiLock o) {
-        owner = o;
-        sync = new Sync();
-        readLock = new ReadLock();
-        writeLock = new WriteLock();
+
+    public MultiLock() {
+        this(null);
+    }
+
+    public MultiLock(@Nullable final MultiLock o) {
+        this.owner = o;
+        this.sync = new Sync();
+        this.readLock = new ReadLock();
+        this.writeLock = new WriteLock();
     }
     
     class ReadLock implements Lock {
