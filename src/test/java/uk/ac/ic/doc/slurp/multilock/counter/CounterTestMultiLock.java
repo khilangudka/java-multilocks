@@ -30,7 +30,7 @@ public class CounterTestMultiLock extends CounterTest {
 
     @Override
     public void inc(Counter c) {
-        c.mlock.lockWrite();
+        c.mlock.writeLock();
         c.inc();
         c.mlock.unlockWrite();
     }

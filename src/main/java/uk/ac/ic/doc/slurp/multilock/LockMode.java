@@ -63,23 +63,23 @@ public enum LockMode {
         final boolean lockResult;
         switch (lockMode) {
             case IS:
-                lockResult = multiLock.lockIntentionRead();
+                lockResult = multiLock.intentionReadLock();
                 break;
 
             case IX:
-                lockResult = multiLock.lockIntentionWrite();
+                lockResult = multiLock.intentionWriteLock();
                 break;
 
             case S:
-                lockResult = multiLock.lockRead();
+                lockResult = multiLock.readLock();
                 break;
 
             case SIX:
-                lockResult = multiLock.lockRead() && multiLock.lockIntentionWrite();
+                lockResult = multiLock.readLock() && multiLock.intentionWriteLock();
                 break;
 
             case X:
-                lockResult = multiLock.lockWrite();
+                lockResult = multiLock.writeLock();
                 break;
 
             default:

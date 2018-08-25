@@ -19,35 +19,35 @@ public class HierarchicalMultiLock extends MultiLock {
     }
 
     @Override
-    public boolean lockRead() {
+    public boolean readLock() {
         if (parent != null) {
-            parent.lockIntentionRead();
+            parent.intentionReadLock();
         }
-        return super.lockRead();
+        return super.readLock();
     }
 
     @Override
-    public boolean lockWrite() {
+    public boolean writeLock() {
         if (parent != null) {
-            parent.lockIntentionWrite();
+            parent.intentionWriteLock();
         }
-        return super.lockWrite();
+        return super.writeLock();
     }
 
     @Override
-    public boolean lockIntentionRead() {
+    public boolean intentionReadLock() {
         if (parent != null) {
-            parent.lockIntentionRead();
+            parent.intentionReadLock();
         }
-        return super.lockIntentionRead();
+        return super.intentionReadLock();
     }
 
     @Override
-    public boolean lockIntentionWrite() {
+    public boolean intentionWriteLock() {
         if (parent != null) {
-            parent.lockIntentionWrite();
+            parent.intentionWriteLock();
         }
-        return super.lockIntentionWrite();
+        return super.intentionWriteLock();
     }
 
     @Override

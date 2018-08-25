@@ -49,80 +49,144 @@ public class MultiLock {
     static final long IS_UNIT = 0x0000000000000001L;
 
     final Sync sync;
-    
-    final ReadLock readLock;
-    final WriteLock writeLock;
-    
+
+    // views
+    transient ReadLockView readLockView;
+    transient WriteLockView writeLockView;
+    transient ReadWriteLockView readWriteLockView;
+
     /**
      * Constructs a MultiLock.
      */
     public MultiLock() {
         this.sync = new Sync();
-        this.readLock = new ReadLock();
-        this.writeLock = new WriteLock();
     }
     
-    class ReadLock implements Lock {
-        
+    final class ReadLockView implements Lock {
+
+        @Override
         public void lock() {
-            lockRead();
+            readLock();
         }
 
+        @Override
         public void unlock() {
             unlockRead();
         }        
-        
+
+        @Override
         public void lockInterruptibly() throws InterruptedException {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public Condition newCondition() {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public boolean tryLock() {
             throw new UnsupportedOperationException();
         }
 
-        public boolean tryLock(long time, TimeUnit unit)
+        @Override
+        public boolean tryLock(final long time, final TimeUnit unit)
                 throws InterruptedException {
             throw new UnsupportedOperationException();
         }
-
     }
     
-    class WriteLock implements Lock {
+    final class WriteLockView implements Lock {
 
+        @Override
         public void lock() {
-            lockWrite();
+            writeLock();
         }
 
+        @Override
         public void unlock() {
             unlockWrite();
         }
 
+        @Override
         public void lockInterruptibly() throws InterruptedException {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public Condition newCondition() {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public boolean tryLock() {
             throw new UnsupportedOperationException();
         }
 
-        public boolean tryLock(long time, TimeUnit unit)
+        @Override
+        public boolean tryLock(final long time, final TimeUnit unit)
                 throws InterruptedException {
             throw new UnsupportedOperationException();
         }
-
     }
-    
-    public Lock readLock() { return readLock; }
-    
-    public Lock writeLock() { return writeLock; }
+
+    final class ReadWriteLockView implements ReadWriteLock {
+        @Override
+        public Lock readLock() {
+            return asReadLock();
+        }
+
+        @Override
+        public Lock writeLock() {
+            return asWriteLock();
+        }
+    }
+
+    /**
+     * Returns a plain {@link Lock} view of this MultiLock in which
+     * the {@link Lock#lock} method is mapped to {@link #readLock()},
+     * and similarly for other methods. The returned Lock does not
+     * support a {@link Condition}; method {@link
+     * Lock#newCondition()} throws {@code
+     * UnsupportedOperationException}.
+     *
+     * @return the lock
+     */
+    public Lock asReadLock() {
+        ReadLockView v;
+        return ((v = readLockView) != null ? v :
+                (readLockView = new ReadLockView()));
+    }
+
+    /**
+     * Returns a plain {@link Lock} view of this MultiLock in which
+     * the {@link Lock#lock} method is mapped to {@link #writeLock()},
+     * and similarly for other methods. The returned Lock does not
+     * support a {@link Condition}; method {@link
+     * Lock#newCondition()} throws {@code
+     * UnsupportedOperationException}.
+     *
+     * @return the lock
+     */
+    public Lock asWriteLock() {
+        WriteLockView v;
+        return ((v = writeLockView) != null ? v :
+                (writeLockView = new WriteLockView()));
+    }
+
+    /**
+     * Returns a {@link ReadWriteLock} view of this MultiLock in
+     * which the {@link ReadWriteLock#readLock()} method is mapped to
+     * {@link #asReadLock()}, and {@link ReadWriteLock#writeLock()} to
+     * {@link #asWriteLock()}.
+     *
+     * @return the lock
+     */
+    public ReadWriteLock asReadWriteLock() {
+        ReadWriteLockView v;
+        return ((v = readWriteLockView) != null ? v :
+                (readWriteLockView = new ReadWriteLockView()));
+    }
     
     static class Sync extends AbstractQueuedLongSynchronizer {
 
@@ -388,22 +452,22 @@ public class MultiLock {
         }
     }
     
-    public boolean lockRead() {
+    public boolean readLock() {
         sync.acquireShared(S_UNIT);
         return true;
     }
     
-    public boolean lockWrite() {
+    public boolean writeLock() {
         sync.acquire(X_UNIT);
         return true;
     }
     
-    public boolean lockIntentionRead() {
+    public boolean intentionReadLock() {
         sync.acquireShared(IS_UNIT);
         return true;
     }
     
-    public boolean lockIntentionWrite() {
+    public boolean intentionWriteLock() {
         sync.acquireShared(IX_UNIT);
         return true;
     }

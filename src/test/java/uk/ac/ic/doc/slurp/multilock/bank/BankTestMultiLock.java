@@ -35,16 +35,17 @@ public class BankTestMultiLock extends BankTest {
         super(nWithdraw, nDeposit, nBranch, nBank);
     }
 
+    @Override
     public void withdraw(Bank b, Random r) {
         int branchId = r.nextInt(NUM_BRANCHES);
         int acctId = r.nextInt(NUM_ACCTS_PER_BRANCH);
         int amt = r.nextInt(60);
 
-        b.mlock.lockIntentionWrite();
+        b.mlock.intentionWriteLock();
         Branch branch = b.branches[branchId];
-        branch.mlock.lockIntentionWrite();
+        branch.mlock.intentionWriteLock();
         Account acct = branch.accounts[acctId];
-        acct.mlock.lockWrite();
+        acct.mlock.writeLock();
         
         acct.withdraw(amt);
 
@@ -52,17 +53,18 @@ public class BankTestMultiLock extends BankTest {
         branch.mlock.unlockIntentionWrite();
         b.mlock.unlockIntentionWrite();
     }
-    
+
+    @Override
     public void deposit(Bank b, Random r) {
         int branchId = r.nextInt(NUM_BRANCHES);
         int acctId = r.nextInt(NUM_ACCTS_PER_BRANCH);
         int amt = r.nextInt(60);
 
-        b.mlock.lockIntentionWrite();
+        b.mlock.intentionWriteLock();
         Branch branch = b.branches[branchId];
-        branch.mlock.lockIntentionWrite();
+        branch.mlock.intentionWriteLock();
         Account acct = branch.accounts[acctId];
-        acct.mlock.lockWrite();
+        acct.mlock.writeLock();
         
         acct.deposit(amt);
 
@@ -70,22 +72,24 @@ public class BankTestMultiLock extends BankTest {
         branch.mlock.unlockIntentionWrite();
         b.mlock.unlockIntentionWrite();
     }
-    
+
+    @Override
     public void sumOneBranch(Bank b, Random r) {
         int branchId = r.nextInt(NUM_BRANCHES);
         
-        b.mlock.lockIntentionRead();
+        b.mlock.intentionReadLock();
         Branch branch = b.branches[branchId];
-        branch.mlock.lockRead();
+        branch.mlock.readLock();
         
         branch.sumBalances();
 
         branch.mlock.unlockRead();
         b.mlock.unlockIntentionRead();
     }
-    
+
+    @Override
     public void sumAll(Bank b) {
-        b.mlock.lockRead();
+        b.mlock.readLock();
 
         b.sumAll();
         
