@@ -48,6 +48,7 @@
             <groupId>org.deucestm</groupId>
             <artifactId>deuce-annotations</artifactId>
             <version>1.0-SNAPSHOT</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
