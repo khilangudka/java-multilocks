@@ -29,7 +29,7 @@ package uk.ac.ic.doc.slurp.multilock;
 import java.util.concurrent.locks.*;
 
 public abstract class Lockable {
-    public MultiLock mlock = new MultiLock(null);
+    public MultiLock mlock = new HierarchicalMultiLock(null);
     public ReentrantReadWriteLock rwlock = new ReentrantReadWriteLock();
     public Lock rlock = rwlock.readLock();
     public Lock wlock = rwlock.writeLock();

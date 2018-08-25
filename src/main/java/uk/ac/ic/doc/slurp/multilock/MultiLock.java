@@ -29,7 +29,6 @@ package uk.ac.ic.doc.slurp.multilock;
 
 import sun.misc.Unsafe;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.*;
@@ -49,19 +48,15 @@ public class MultiLock {
     static final long IX_UNIT = 0x0000000000010000L;
     static final long IS_UNIT = 0x0000000000000001L;
 
-    final MultiLock owner;
     final Sync sync;
     
     final ReadLock readLock;
     final WriteLock writeLock;
     
-
+    /**
+     * Constructs a MultiLock.
+     */
     public MultiLock() {
-        this(null);
-    }
-
-    public MultiLock(@Nullable final MultiLock o) {
-        this.owner = o;
         this.sync = new Sync();
         this.readLock = new ReadLock();
         this.writeLock = new WriteLock();
@@ -394,63 +389,39 @@ public class MultiLock {
     }
     
     public boolean lockRead() {
-        if (owner != null) {
-            owner.lockIntentionRead();
-        }
         sync.acquireShared(S_UNIT);
         return true;
     }
     
     public boolean lockWrite() {
-        if (owner != null) {
-            owner.lockIntentionWrite();
-        }
         sync.acquire(X_UNIT);
         return true;
     }
     
     public boolean lockIntentionRead() {
-        if (owner != null) {
-            owner.lockIntentionRead();
-        }
         sync.acquireShared(IS_UNIT);
         return true;
     }
     
     public boolean lockIntentionWrite() {
-        if (owner != null) {
-            owner.lockIntentionWrite();
-        }
         sync.acquireShared(IX_UNIT);
         return true;
     }
  
     public void unlockRead() {
         sync.releaseShared(S_UNIT);
-        if (owner != null) {
-            owner.unlockIntentionRead();
-        }
     }
     
     public void unlockWrite() {
         sync.release(X_UNIT);
-        if (owner != null) {
-            owner.unlockIntentionWrite();
-        }        
     }
     
     public void unlockIntentionRead() {
         sync.releaseShared(IS_UNIT);
-        if (owner != null) {
-            owner.unlockIntentionRead();
-        }        
     }
  
     public void unlockIntentionWrite() {
         sync.releaseShared(IX_UNIT);
-        if (owner != null) {
-            owner.unlockIntentionWrite();
-        }        
     }
 
     /**

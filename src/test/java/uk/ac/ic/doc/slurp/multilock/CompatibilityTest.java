@@ -184,7 +184,7 @@ public class CompatibilityTest {
     }
 
     private static List<Future<Boolean>> checkCompatibility(final LockMode mode1, final LockMode mode2) throws InterruptedException {
-        final MultiLock multiLock = new MultiLock(null);
+        final MultiLock multiLock = new MultiLock();
 
         final CountDownLatch latch = new CountDownLatch(2);
 

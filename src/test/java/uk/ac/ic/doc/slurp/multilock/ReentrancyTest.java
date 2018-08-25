@@ -51,7 +51,7 @@ public class ReentrancyTest {
     }
 
     private static void assertReentrant(final LockMode lockMode) throws InterruptedException, ExecutionException {
-        final MultiLock multiLock = new MultiLock(null);
+        final MultiLock multiLock = new MultiLock();
 
         final ExecutorService executorService = Executors.newSingleThreadExecutor();
         final List<Future<Integer>> futures = executorService.invokeAll(Arrays.asList(new Reenter(multiLock, lockMode, REENTER_COUNT)), LOCK_ACQUISITIONS_TIMEOUT, TimeUnit.MILLISECONDS);

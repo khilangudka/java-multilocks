@@ -125,200 +125,200 @@ public class HierarchyTest {
 
     @Test
     public void t1_root_IS_t2_child_IS() throws InterruptedException, ExecutionException {
-        final MultiLock root = new MultiLock(null);
+        final MultiLock root = new MultiLock();
         assertTrue(IS.lock(root));
 
-        final MultiLock child = new MultiLock(root);
+        final MultiLock child = new HierarchicalMultiLock(root);
         assertOtherThreadLockableChild(child, IS);
 
     }
 
     @Test
     public void t1_root_IS_t2_child_IX() throws InterruptedException, ExecutionException {
-        final MultiLock root = new MultiLock(null);
+        final MultiLock root = new MultiLock();
         assertTrue(IS.lock(root));
 
-        final MultiLock child = new MultiLock(root);
+        final MultiLock child = new HierarchicalMultiLock(root);
         assertOtherThreadLockableChild(child, IX);
     }
 
     @Test
     public void t1_root_IS_t2_child_S() throws InterruptedException, ExecutionException {
-        final MultiLock root = new MultiLock(null);
+        final MultiLock root = new MultiLock();
         assertTrue(IS.lock(root));
 
-        final MultiLock child = new MultiLock(root);
+        final MultiLock child = new HierarchicalMultiLock(root);
         assertOtherThreadLockableChild(child, S);
     }
 
     @Test
     public void t1_root_IS_t2_child_SIX() throws InterruptedException, ExecutionException {
-        final MultiLock root = new MultiLock(null);
+        final MultiLock root = new MultiLock();
         assertTrue(IS.lock(root));
 
-        final MultiLock child = new MultiLock(root);
+        final MultiLock child = new HierarchicalMultiLock(root);
         assertOtherThreadLockableChild(child, SIX);
     }
 
     @Test
     public void t1_root_IS_t2_child_X() throws InterruptedException, ExecutionException {
-        final MultiLock root = new MultiLock(null);
+        final MultiLock root = new MultiLock();
         assertTrue(IS.lock(root));
 
-        final MultiLock child = new MultiLock(root);
+        final MultiLock child = new HierarchicalMultiLock(root);
         assertOtherThreadLockableChild(child, X);
     }
 
     @Test
     public void t1_root_IX_t2_child_IS() throws InterruptedException, ExecutionException {
-        final MultiLock root = new MultiLock(null);
+        final MultiLock root = new MultiLock();
         assertTrue(IX.lock(root));
 
-        final MultiLock child = new MultiLock(root);
+        final MultiLock child = new HierarchicalMultiLock(root);
         assertOtherThreadLockableChild(child, IS);
 
     }
 
     @Test
     public void t1_root_IX_t2_child_IX() throws InterruptedException, ExecutionException {
-        final MultiLock root = new MultiLock(null);
+        final MultiLock root = new MultiLock();
         assertTrue(IX.lock(root));
 
-        final MultiLock child = new MultiLock(root);
+        final MultiLock child = new HierarchicalMultiLock(root);
         assertOtherThreadLockableChild(child, IX);
     }
 
     @Test
     public void t1_root_IX_t2_child_S() throws InterruptedException, ExecutionException {
-        final MultiLock root = new MultiLock(null);
+        final MultiLock root = new MultiLock();
         assertTrue(IX.lock(root));
 
-        final MultiLock child = new MultiLock(root);
+        final MultiLock child = new HierarchicalMultiLock(root);
         assertOtherThreadLockableChild(child, S);
     }
 
     @Test
     public void t1_root_IX_t2_child_SIX() throws InterruptedException, ExecutionException {
-        final MultiLock root = new MultiLock(null);
+        final MultiLock root = new MultiLock();
         assertTrue(IX.lock(root));
 
-        final MultiLock child = new MultiLock(root);
+        final MultiLock child = new HierarchicalMultiLock(root);
         assertOtherThreadLockableChild(child, SIX);
     }
 
     @Test
     public void t1_root_IX_t2_child_X() throws InterruptedException, ExecutionException {
-        final MultiLock root = new MultiLock(null);
+        final MultiLock root = new MultiLock();
         assertTrue(IX.lock(root));
 
-        final MultiLock child = new MultiLock(root);
+        final MultiLock child = new HierarchicalMultiLock(root);
         assertOtherThreadLockableChild(child, SIX);
     }
 
     @Test
     public void t1_root_S_t2_child_IS() throws InterruptedException, ExecutionException {
-        final MultiLock root = new MultiLock(null);
+        final MultiLock root = new MultiLock();
         assertTrue(S.lock(root));
 
-        final MultiLock child = new MultiLock(root);
+        final MultiLock child = new HierarchicalMultiLock(root);
         assertOtherThreadLockableChild(child, IS);
 
     }
 
     @Test
     public void t1_root_S_t2_child_IX() throws InterruptedException, ExecutionException {
-        final MultiLock root = new MultiLock(null);
+        final MultiLock root = new MultiLock();
         assertTrue(S.lock(root));
 
-        final MultiLock child = new MultiLock(root);
+        final MultiLock child = new HierarchicalMultiLock(root);
         // notLockable = test thread holds S on root, other thread attempts IX on child (which attempts IX on root). S is not compatible with IX
         assertOtherThreadNotLockableChild(child, IX);
     }
 
     @Test
     public void t1_root_S_t2_child_S() throws InterruptedException, ExecutionException {
-        final MultiLock root = new MultiLock(null);
+        final MultiLock root = new MultiLock();
         assertTrue(S.lock(root));
 
-        final MultiLock child = new MultiLock(root);
+        final MultiLock child = new HierarchicalMultiLock(root);
         assertOtherThreadLockableChild(child, S);
     }
 
     @Test
     public void t1_root_S_t2_child_SIX() throws InterruptedException, ExecutionException {
-        final MultiLock root = new MultiLock(null);
+        final MultiLock root = new MultiLock();
         assertTrue(S.lock(root));
 
-        final MultiLock child = new MultiLock(root);
+        final MultiLock child = new HierarchicalMultiLock(root);
         // notLockable = test thread holds S on root, other thread attempts SIX on child (which attempts S+IX on root). S is not compatible with IX
         assertOtherThreadNotLockableChild(child, SIX);
     }
 
     @Test
     public void t1_root_S_t2_child_X() throws InterruptedException, ExecutionException {
-        final MultiLock root = new MultiLock(null);
+        final MultiLock root = new MultiLock();
         assertTrue(S.lock(root));
 
-        final MultiLock child = new MultiLock(root);
+        final MultiLock child = new HierarchicalMultiLock(root);
         // notLockable = test thread holds S on root, other thread attempts X on child (which attempts IX on root). S is not compatible with IX
         assertOtherThreadNotLockableChild(child, X);
     }
 
     @Test
     public void t1_root_SIX_t2_child_IS() throws InterruptedException, ExecutionException {
-        final MultiLock root = new MultiLock(null);
+        final MultiLock root = new MultiLock();
         assertTrue(SIX.lock(root));
 
-        final MultiLock child = new MultiLock(root);
+        final MultiLock child = new HierarchicalMultiLock(root);
         assertOtherThreadLockableChild(child, IS);
 
     }
 
     @Test
     public void t1_root_SIX_t2_child_IX() throws InterruptedException, ExecutionException {
-        final MultiLock root = new MultiLock(null);
+        final MultiLock root = new MultiLock();
         assertTrue(SIX.lock(root));
 
-        final MultiLock child = new MultiLock(root);
+        final MultiLock child = new HierarchicalMultiLock(root);
         // notLockable = test thread holds S+IX on root, other thread attempts IX on child (which attempts IX on root). S is not compatible with IX
         assertOtherThreadNotLockableChild(child, IX);
     }
 
     @Test
     public void t1_root_SIX_t2_child_S() throws InterruptedException, ExecutionException {
-        final MultiLock root = new MultiLock(null);
+        final MultiLock root = new MultiLock();
         assertTrue(SIX.lock(root));
 
-        final MultiLock child = new MultiLock(root);
+        final MultiLock child = new HierarchicalMultiLock(root);
         assertOtherThreadLockableChild(child, S);
     }
 
     @Test
     public void t1_root_SIX_t2_child_SIX() throws InterruptedException, ExecutionException {
-        final MultiLock root = new MultiLock(null);
+        final MultiLock root = new MultiLock();
         assertTrue(SIX.lock(root));
 
-        final MultiLock child = new MultiLock(root);
+        final MultiLock child = new HierarchicalMultiLock(root);
         // notLockable = test thread holds S+IX on root, other thread attempts SIX on child (which attempts IS+IX on root). S is not compatible with IX
         assertOtherThreadNotLockableChild(child, SIX);
     }
 
     @Test
     public void t1_root_SIX_t2_child_X() throws InterruptedException, ExecutionException {
-        final MultiLock root = new MultiLock(null);
+        final MultiLock root = new MultiLock();
         assertTrue(SIX.lock(root));
 
-        final MultiLock child = new MultiLock(root);
+        final MultiLock child = new HierarchicalMultiLock(root);
         // notLockable = test thread holds S+IX on root, other thread attempts X on child (which attempts IX on root). S is not compatible with IX
         assertOtherThreadNotLockableChild(child, X);
     }
 
     @Test
     public void t1_root_X_t2_child_IS() throws InterruptedException, ExecutionException {
-        final MultiLock root = new MultiLock(null);
+        final MultiLock root = new MultiLock();
         assertTrue(X.lock(root));
 
-        final MultiLock child = new MultiLock(root);
+        final MultiLock child = new HierarchicalMultiLock(root);
         // notLockable = test thread holds X on root, other thread attempts IS on child (which attempts IS on root). X is not compatible with IS
         assertOtherThreadNotLockableChild(child, IS);
 
@@ -326,47 +326,47 @@ public class HierarchyTest {
 
     @Test
     public void t1_root_X_t2_child_IX() throws InterruptedException, ExecutionException {
-        final MultiLock root = new MultiLock(null);
+        final MultiLock root = new MultiLock();
         assertTrue(X.lock(root));
 
-        final MultiLock child = new MultiLock(root);
+        final MultiLock child = new HierarchicalMultiLock(root);
         // notLockable = test thread holds X on root, other thread attempts IX on child (which attempts IX on root). X is not compatible with IX
         assertOtherThreadNotLockableChild(child, IX);
     }
 
     @Test
     public void t1_root_X_t2_child_S() throws InterruptedException, ExecutionException {
-        final MultiLock root = new MultiLock(null);
+        final MultiLock root = new MultiLock();
         assertTrue(X.lock(root));
 
-        final MultiLock child = new MultiLock(root);
+        final MultiLock child = new HierarchicalMultiLock(root);
         // notLockable = test thread holds X on root, other thread attempts S on child (which attempts IS on root). X is not compatible with IS
         assertOtherThreadNotLockableChild(child, S);
     }
 
     @Test
     public void t1_root_X_t2_child_SIX() throws InterruptedException, ExecutionException {
-        final MultiLock root = new MultiLock(null);
+        final MultiLock root = new MultiLock();
         assertTrue(X.lock(root));
 
-        final MultiLock child = new MultiLock(root);
+        final MultiLock child = new HierarchicalMultiLock(root);
         // notLockable = test thread holds X on root, other thread attempts SIX on child (which attempts IS+IX on root). X is not compatible with IS or IX
         assertOtherThreadNotLockableChild(child, SIX);
     }
 
     @Test
     public void t1_root_X_t2_child_X() throws InterruptedException, ExecutionException {
-        final MultiLock root = new MultiLock(null);
+        final MultiLock root = new MultiLock();
         assertTrue(X.lock(root));
 
-        final MultiLock child = new MultiLock(root);
+        final MultiLock child = new HierarchicalMultiLock(root);
         // notLockable = test thread holds X on root, other thread attempts X on child (which attempts IX on root). X is not compatible with IX
         assertOtherThreadNotLockableChild(child, X);
     }
 
     private static void assertLockRootThenChild(final LockMode rootMode, final LockMode childMode) throws InterruptedException, ExecutionException {
-        final MultiLock root = new MultiLock(null);
-        final MultiLock child = new MultiLock(root);
+        final MultiLock root = new MultiLock();
+        final MultiLock child = new HierarchicalMultiLock(root);
 
         final ExecutorService executorService = Executors.newSingleThreadExecutor();
         final List<Future<Boolean>> futures = executorService.invokeAll(Arrays.asList(new RootAndChildLockAcquirer(root, rootMode, child, childMode)), LOCK_ACQUISITION_TIMEOUT, TimeUnit.MILLISECONDS);
@@ -381,8 +381,8 @@ public class HierarchyTest {
     }
 
     private static void assertLockRootThenNotChild(final LockMode rootMode, final LockMode childMode) throws InterruptedException, ExecutionException {
-        final MultiLock root = new MultiLock(null);
-        final MultiLock child = new MultiLock(root);
+        final MultiLock root = new MultiLock();
+        final MultiLock child = new HierarchicalMultiLock(root);
 
         final ExecutorService executorService = Executors.newSingleThreadExecutor();
         final List<Future<Boolean>> futures = executorService.invokeAll(Arrays.asList(new RootAndChildLockAcquirer(root, rootMode, child, childMode)), LOCK_ACQUISITION_TIMEOUT, TimeUnit.MILLISECONDS);

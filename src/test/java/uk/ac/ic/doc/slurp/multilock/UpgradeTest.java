@@ -78,7 +78,7 @@ public class UpgradeTest {
     }
 
     private static void assertUpgradeable(final LockMode from, final LockMode to) throws InterruptedException, ExecutionException {
-        final MultiLock multiLock = new MultiLock(null);
+        final MultiLock multiLock = new MultiLock();
 
         final ExecutorService executorService = Executors.newSingleThreadExecutor();
         final List<Future<Boolean>> futures = executorService.invokeAll(Arrays.asList(new Upgrade(multiLock, from, to)), LOCK_ACQUISITION_TIMEOUT, TimeUnit.MILLISECONDS);
