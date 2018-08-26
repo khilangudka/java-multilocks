@@ -31,8 +31,18 @@ public class ReentrancyTest {
     }
 
     @Test
+    public void reentrant_IS_interruptibly() throws InterruptedException, ExecutionException {
+        assertReentrantInterruptibly(IS);
+    }
+
+    @Test
     public void reentrant_IX() throws InterruptedException, ExecutionException {
         assertReentrant(IX);
+    }
+
+    @Test
+    public void reentrant_IX_interruptibly() throws InterruptedException, ExecutionException {
+        assertReentrantInterruptibly(IX);
     }
 
     @Test
@@ -41,8 +51,18 @@ public class ReentrancyTest {
     }
 
     @Test
+    public void reentrant_S_interruptibly() throws InterruptedException, ExecutionException {
+        assertReentrantInterruptibly(S);
+    }
+
+    @Test
     public void reentrant_SIX() throws InterruptedException, ExecutionException {
         assertReentrant(SIX);
+    }
+
+    @Test
+    public void reentrant_SIX_interruptibly() throws InterruptedException, ExecutionException {
+        assertReentrantInterruptibly(SIX);
     }
 
     @Test
@@ -50,11 +70,30 @@ public class ReentrancyTest {
         assertReentrant(X);
     }
 
+    @Test
+    public void reentrant_X_interruptibly() throws InterruptedException, ExecutionException {
+        assertReentrantInterruptibly(X);
+    }
+
     private static void assertReentrant(final LockMode lockMode) throws InterruptedException, ExecutionException {
         final MultiLock multiLock = new MultiLock();
 
         final ExecutorService executorService = Executors.newSingleThreadExecutor();
         final List<Future<Integer>> futures = executorService.invokeAll(Arrays.asList(new Reenter(multiLock, lockMode, REENTER_COUNT)), LOCK_ACQUISITIONS_TIMEOUT, TimeUnit.MILLISECONDS);
+
+        for (final Future<Integer> future : futures) {
+            assertTrue(future.isDone());
+            assertFalse(future.isCancelled());
+
+            assertEquals(REENTER_COUNT, (int)future.get());
+        }
+    }
+
+    private static void assertReentrantInterruptibly(final LockMode lockMode) throws InterruptedException, ExecutionException {
+        final MultiLock multiLock = new MultiLock();
+
+        final ExecutorService executorService = Executors.newSingleThreadExecutor();
+        final List<Future<Integer>> futures = executorService.invokeAll(Arrays.asList(new ReenterInterruptibly(multiLock, lockMode, REENTER_COUNT)), LOCK_ACQUISITIONS_TIMEOUT, TimeUnit.MILLISECONDS);
 
         for (final Future<Integer> future : futures) {
             assertTrue(future.isDone());
@@ -82,6 +121,28 @@ public class ReentrancyTest {
                 if (lockMode.lock(multiLock)) {
                     success++;
                 }
+            }
+            return success;
+        }
+    }
+
+    private static class ReenterInterruptibly implements Callable<Integer> {
+        private final MultiLock multiLock;
+        private final LockMode lockMode;
+        private final int count;
+
+        private ReenterInterruptibly(final MultiLock multiLock, final LockMode lockMode, final int count) {
+            this.multiLock = multiLock;
+            this.lockMode = lockMode;
+            this.count = count;
+        }
+
+        @Override
+        public Integer call() throws InterruptedException {
+            int success = 0;
+            for (int i = 0; i < count; i++) {
+                lockMode.lockInterruptibly(multiLock);
+                success++;
             }
             return success;
         }

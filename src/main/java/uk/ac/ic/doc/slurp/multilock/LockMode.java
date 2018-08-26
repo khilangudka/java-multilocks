@@ -41,6 +41,17 @@ public enum LockMode {
     }
 
     /**
+     * Locks the MultiLock with this mode, aborting if interrupted.
+     *
+     * @param multiLock the MultiLock object.
+     *
+     * @throws InterruptedException if the thread was interrupted
+     */
+    public void lockInterruptibly(final MultiLock multiLock) throws InterruptedException {
+        lockInterruptibly(multiLock, this);
+    }
+
+    /**
      * Unlocks the MultiLock with this mode.
      *
      * @param multiLock the MultiLock object.
@@ -87,6 +98,48 @@ public enum LockMode {
         }
 
         return lockResult;
+    }
+
+    /**
+     * Locks the MultiLock with the provided mode, aborting if interrupted.
+     *
+     * @param multiLock the MultiLock object.
+     * @param lockMode the mode to lock the MultiLock.
+     *
+     * @throws IllegalArgumentException if an unknown mode is provided.
+     * @throws InterruptedException if the thread was interrupted
+     */
+    public static void lockInterruptibly(final MultiLock multiLock, final LockMode lockMode) throws InterruptedException {
+        switch (lockMode) {
+            case IS:
+                multiLock.intentionReadLockInterruptibly();
+                break;
+
+            case IX:
+                multiLock.intentionWriteLockInterruptibly();
+                break;
+
+            case S:
+                multiLock.readLockInterruptibly();
+                break;
+
+            case SIX:
+                multiLock.readLockInterruptibly();
+                try {
+                    multiLock.intentionWriteLockInterruptibly();
+                } catch (final InterruptedException e) {
+                    multiLock.unlockRead();
+                    throw e;
+                }
+                break;
+
+            case X:
+                multiLock.writeLockInterruptibly();
+                break;
+
+            default:
+                throw new IllegalArgumentException("Unknown lock mode: " + lockMode);
+        }
     }
 
     /**

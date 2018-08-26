@@ -27,11 +27,43 @@ public class HierarchicalMultiLock extends MultiLock {
     }
 
     @Override
+    public void readLockInterruptibly() throws InterruptedException {
+        if (parent != null) {
+            parent.intentionReadLockInterruptibly();
+        }
+
+        try {
+            super.readLockInterruptibly();
+        } catch (final InterruptedException e) {
+            if (parent != null) {
+                parent.unlockIntentionRead();
+            }
+            throw e;
+        }
+    }
+
+    @Override
     public boolean writeLock() {
         if (parent != null) {
             parent.intentionWriteLock();
         }
         return super.writeLock();
+    }
+
+    @Override
+    public void writeLockInterruptibly() throws InterruptedException {
+        if (parent != null) {
+            parent.intentionWriteLockInterruptibly();
+        }
+
+        try {
+            super.writeLockInterruptibly();
+        } catch (final InterruptedException e) {
+            if (parent != null) {
+                parent.unlockIntentionWrite();
+            }
+            throw e;
+        }
     }
 
     @Override
@@ -43,11 +75,43 @@ public class HierarchicalMultiLock extends MultiLock {
     }
 
     @Override
+    public void intentionReadLockInterruptibly() throws InterruptedException {
+        if (parent != null) {
+            parent.intentionReadLockInterruptibly();
+        }
+
+        try {
+            super.intentionReadLockInterruptibly();
+        } catch (final InterruptedException e) {
+            if (parent != null) {
+                parent.unlockIntentionRead();
+            }
+            throw e;
+        }
+    }
+
+    @Override
     public boolean intentionWriteLock() {
         if (parent != null) {
             parent.intentionWriteLock();
         }
         return super.intentionWriteLock();
+    }
+
+    @Override
+    public void intentionWriteLockInterruptibly() throws InterruptedException {
+        if (parent != null) {
+            parent.intentionWriteLockInterruptibly();
+        }
+
+        try {
+            super.intentionWriteLockInterruptibly();
+        } catch (final InterruptedException e) {
+            if (parent != null) {
+                parent.unlockIntentionWrite();
+            }
+            throw e;
+        }
     }
 
     @Override

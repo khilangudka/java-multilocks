@@ -38,8 +38,18 @@ public class UpgradeTest {
     }
 
     @Test
+    public void upgrade_IS_IX_interruptibly() throws InterruptedException, ExecutionException {
+        assertUpgradeableInterruptibly(IS, IX);
+    }
+
+    @Test
     public void upgrade_IS_S() throws InterruptedException, ExecutionException {
         assertUpgradeable(IS, S);
+    }
+
+    @Test
+    public void upgrade_IS_S_interruptibly() throws InterruptedException, ExecutionException {
+        assertUpgradeableInterruptibly(IS, S);
     }
 
     @Test
@@ -48,8 +58,18 @@ public class UpgradeTest {
     }
 
     @Test
+    public void upgrade_IS_SIX_interruptibly() throws InterruptedException, ExecutionException {
+        assertUpgradeableInterruptibly(IS, SIX);
+    }
+
+    @Test
     public void upgrade_IS_X() throws InterruptedException, ExecutionException {
         assertUpgradeable(IS, X);
+    }
+
+    @Test
+    public void upgrade_IS_X_interruptibly() throws InterruptedException, ExecutionException {
+        assertUpgradeableInterruptibly(IS, X);
     }
 
     @Test
@@ -58,8 +78,18 @@ public class UpgradeTest {
     }
 
     @Test
+    public void upgrade_IX_SIX_interruptibly() throws InterruptedException, ExecutionException {
+        assertUpgradeableInterruptibly(IX, SIX);
+    }
+
+    @Test
     public void upgrade_IX_X() throws InterruptedException, ExecutionException {
         assertUpgradeable(IX, X);
+    }
+
+    @Test
+    public void upgrade_IX_X_interruptibly() throws InterruptedException, ExecutionException {
+        assertUpgradeableInterruptibly(IX, X);
     }
 
     @Test
@@ -68,8 +98,18 @@ public class UpgradeTest {
     }
 
     @Test
+    public void upgrade_S_SIX_interruptibly() throws InterruptedException, ExecutionException {
+        assertUpgradeableInterruptibly(S, SIX);
+    }
+
+    @Test
     public void upgrade_S_X() throws InterruptedException, ExecutionException {
         assertUpgradeable(S, X);
+    }
+
+    @Test
+    public void upgrade_S_X_interruptibly() throws InterruptedException, ExecutionException {
+        assertUpgradeableInterruptibly(S, X);
     }
 
     @Test
@@ -77,11 +117,30 @@ public class UpgradeTest {
         assertUpgradeable(SIX, X);
     }
 
+    @Test
+    public void upgrade_SIX_X_interruptibly() throws InterruptedException, ExecutionException {
+        assertUpgradeableInterruptibly(SIX, X);
+    }
+
     private static void assertUpgradeable(final LockMode from, final LockMode to) throws InterruptedException, ExecutionException {
         final MultiLock multiLock = new MultiLock();
 
         final ExecutorService executorService = Executors.newSingleThreadExecutor();
         final List<Future<Boolean>> futures = executorService.invokeAll(Arrays.asList(new Upgrade(multiLock, from, to)), LOCK_ACQUISITION_TIMEOUT, TimeUnit.MILLISECONDS);
+
+        for (final Future<Boolean> future : futures) {
+            assertTrue(future.isDone());
+            assertFalse(future.isCancelled());
+
+            assertTrue(future.get());
+        }
+    }
+
+    private static void assertUpgradeableInterruptibly(final LockMode from, final LockMode to) throws InterruptedException, ExecutionException {
+        final MultiLock multiLock = new MultiLock();
+
+        final ExecutorService executorService = Executors.newSingleThreadExecutor();
+        final List<Future<Boolean>> futures = executorService.invokeAll(Arrays.asList(new UpgradeInterruptibly(multiLock, from, to)), LOCK_ACQUISITION_TIMEOUT, TimeUnit.MILLISECONDS);
 
         for (final Future<Boolean> future : futures) {
             assertTrue(future.isDone());
@@ -112,6 +171,26 @@ public class UpgradeTest {
                 }
             }
             return false;
+        }
+    }
+
+    private static class UpgradeInterruptibly implements Callable<Boolean> {
+        private final MultiLock multiLock;
+        private final LockMode from;
+        private final LockMode to;
+
+        private UpgradeInterruptibly(final MultiLock multiLock, final LockMode from, final LockMode to) {
+            this.multiLock = multiLock;
+            this.from = from;
+            this.to = to;
+        }
+
+        @Override
+        public Boolean call() throws InterruptedException {
+            from.lockInterruptibly(multiLock);
+            to.lockInterruptibly(multiLock);
+            from.unlock(multiLock);
+            return true;
         }
     }
 }

@@ -76,7 +76,7 @@ public class MultiLock {
 
         @Override
         public void lockInterruptibly() throws InterruptedException {
-            throw new UnsupportedOperationException();
+            readLockInterruptibly();
         }
 
         @Override
@@ -110,7 +110,7 @@ public class MultiLock {
 
         @Override
         public void lockInterruptibly() throws InterruptedException {
-            throw new UnsupportedOperationException();
+            writeLockInterruptibly();
         }
 
         @Override
@@ -456,20 +456,36 @@ public class MultiLock {
         sync.acquireShared(S_UNIT);
         return true;
     }
+
+    public void readLockInterruptibly() throws InterruptedException {
+        sync.acquireSharedInterruptibly(S_UNIT);
+    }
     
     public boolean writeLock() {
         sync.acquire(X_UNIT);
         return true;
+    }
+
+    public void writeLockInterruptibly() throws InterruptedException {
+        sync.acquireInterruptibly(X_UNIT);
     }
     
     public boolean intentionReadLock() {
         sync.acquireShared(IS_UNIT);
         return true;
     }
+
+    public void intentionReadLockInterruptibly() throws InterruptedException {
+        sync.acquireSharedInterruptibly(IS_UNIT);
+    }
     
     public boolean intentionWriteLock() {
         sync.acquireShared(IX_UNIT);
         return true;
+    }
+
+    public void intentionWriteLockInterruptibly() throws InterruptedException {
+        sync.acquireSharedInterruptibly(IX_UNIT);
     }
  
     public void unlockRead() {
