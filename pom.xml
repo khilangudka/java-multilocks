@@ -35,6 +35,7 @@
 
     <properties>
         <java.version>1.6</java.version>
+        <tests.java.version>1.8</tests.java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -51,9 +52,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.2.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -97,6 +98,8 @@
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
+                    <testSource>${tests.java.version}</testSource>
+                    <testTarget>${tests.java.version}</testTarget>
                     <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
                 <executions>
@@ -180,6 +183,11 @@
                 <configuration>
                     <useAgent>true</useAgent>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.0</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
