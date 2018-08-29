@@ -36,6 +36,7 @@
     <properties>
         <java.version>1.6</java.version>
         <tests.java.version>1.8</tests.java.version>
+        <junit.version>5.3.0-RC1</junit.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -54,7 +55,13 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
-            <version>5.2.0</version>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

@@ -1,6 +1,10 @@
 package uk.ac.ic.doc.slurp.multilock;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Arrays;
 import java.util.List;
@@ -37,260 +41,70 @@ import static uk.ac.ic.doc.slurp.multilock.LockMode.*;
  */
 public class CompatibilityTest {
 
-    private static final long LOCK_ACQUISITION_TIMEOUT = 20;        // TODO(AR) this might need to be longer on slower machines...
+    // TODO(AR) this might need to be longer on slower machines...
+    private static final long LOCK_ACQUISITION_TIMEOUT = 20;
 
-    @Test
-    public void compatible_IS_IS() throws InterruptedException, ExecutionException {
-        assertCompatible(IS, IS);
+    static List<Arguments> compatibleModesProvider() {
+        return Arrays.asList(
+                Arguments.of(IS,    IS,     true),
+                Arguments.of(IS,    IX,     true),
+                Arguments.of(IS,    S,      true),
+                Arguments.of(IS,    SIX,    true),
+                Arguments.of(IS,    X,      false),
+
+                Arguments.of(IX,    IS,     true),
+                Arguments.of(IX,    IX,     true),
+                Arguments.of(IX,    S,      false),
+                Arguments.of(IX,    SIX,    false),
+                Arguments.of(IX,    X,      false),
+
+                Arguments.of(S,     IS,     true),
+                Arguments.of(S,     IX,     false),
+                Arguments.of(S,     S,      true),
+                Arguments.of(S,     SIX,    false),
+                Arguments.of(S,     X,      false),
+
+                Arguments.of(SIX,   IS,     true),
+                Arguments.of(SIX,   IX,     false),
+                Arguments.of(SIX,   S,      false),
+                Arguments.of(SIX,   SIX,    false),
+                Arguments.of(SIX,   X,      false),
+
+                Arguments.of(X,     IS,     false),
+                Arguments.of(X,     IX,     false),
+                Arguments.of(X,     S,      false),
+                Arguments.of(X,     SIX,    false),
+                Arguments.of(X,     X,      false)
+        );
     }
 
-    @Test
-    public void compatible_IS_IS_interruptibly() throws InterruptedException, ExecutionException {
-        assertCompatibleInterruptibly(IS, IS);
+    @ParameterizedTest(name = "from {0} to {1}")
+    @DisplayName("Compatible Modes")
+    @MethodSource("compatibleModesProvider")
+    public void compatible(final LockMode mode1, final LockMode mode2, final boolean compatible)
+            throws InterruptedException, ExecutionException {
+        if (compatible) {
+            assertCompatible(mode1, mode2, (mode, multiLock) -> { mode.lock(multiLock); return true; });
+        } else {
+            assertNotCompatible(mode1, mode2, (mode, multiLock) -> { mode.lock(multiLock); return true; });
+        }
     }
 
-    @Test
-    public void compatible_IS_IX() throws InterruptedException, ExecutionException {
-        assertCompatible(IS, IX);
+    @ParameterizedTest(name = "from {0} to {1}")
+    @DisplayName("Compatible Modes Interruptibly")
+    @MethodSource("compatibleModesProvider")
+    public void compatibleInterruptibly(final LockMode mode1, final LockMode mode2, final boolean compatible)
+            throws InterruptedException, ExecutionException {
+        if (compatible) {
+            assertCompatible(mode1, mode2, (mode, multiLock) -> { mode.lockInterruptibly(multiLock); return true; });
+        } else {
+            assertNotCompatible(mode1, mode2, (mode, multiLock) -> { mode.lockInterruptibly(multiLock); return true; });
+        }
     }
 
-    @Test
-    public void compatible_IS_IX_interruptibly() throws InterruptedException, ExecutionException {
-        assertCompatibleInterruptibly(IS, IX);
-    }
-
-    @Test
-    public void compatible_IS_S() throws InterruptedException, ExecutionException {
-        assertCompatible(IS, S);
-    }
-
-    @Test
-    public void compatible_IS_S_interruptibly() throws InterruptedException, ExecutionException {
-        assertCompatibleInterruptibly(IS, S);
-    }
-
-    @Test
-    public void compatible_IS_SIX() throws InterruptedException, ExecutionException {
-        assertCompatible(IS, SIX);
-    }
-
-    @Test
-    public void compatible_IS_SIX_interruptibly() throws InterruptedException, ExecutionException {
-        assertCompatibleInterruptibly(IS, SIX);
-    }
-
-    @Test
-    public void compatible_IS_X() throws InterruptedException, ExecutionException {
-        assertNotCompatible(IS, X);
-    }
-
-    @Test
-    public void compatible_IS_X_interruptibly() throws InterruptedException, ExecutionException {
-        assertNotCompatibleInterruptibly(IS, X);
-    }
-
-    @Test
-    public void compatible_IX_IS() throws InterruptedException, ExecutionException {
-        assertCompatible(IX, IS);
-    }
-
-    @Test
-    public void compatible_IX_IS_interruptibly() throws InterruptedException, ExecutionException {
-        assertCompatibleInterruptibly(IX, IS);
-    }
-
-    @Test
-    public void compatible_IX_IX() throws InterruptedException, ExecutionException {
-        assertCompatible(IX, IX);
-    }
-
-    @Test
-    public void compatible_IX_IX_interruptibly() throws InterruptedException, ExecutionException {
-        assertCompatibleInterruptibly(IX, IX);
-    }
-
-    @Test
-    public void compatible_IX_S() throws InterruptedException, ExecutionException {
-        assertNotCompatible(IX, S);
-    }
-
-    @Test
-    public void compatible_IX_S_interruptibly() throws InterruptedException, ExecutionException {
-        assertNotCompatibleInterruptibly(IX, S);
-    }
-
-    @Test
-    public void compatible_IX_SIX() throws InterruptedException, ExecutionException {
-        assertNotCompatible(IX, SIX);
-    }
-
-    @Test
-    public void compatible_IX_SIX_interruptibly() throws InterruptedException, ExecutionException {
-        assertNotCompatibleInterruptibly(IX, SIX);
-    }
-
-    @Test
-    public void compatible_IX_X() throws InterruptedException, ExecutionException {
-        assertNotCompatible(IX, X);
-    }
-
-    @Test
-    public void compatible_IX_X_interruptibly() throws InterruptedException, ExecutionException {
-        assertNotCompatibleInterruptibly(IX, X);
-    }
-
-    @Test
-    public void compatible_S_IS() throws InterruptedException, ExecutionException {
-        assertCompatible(S, IS);
-    }
-
-    @Test
-    public void compatible_S_IS_interruptibly() throws InterruptedException, ExecutionException {
-        assertCompatibleInterruptibly(S, IS);
-    }
-
-    @Test
-    public void compatible_S_IX() throws InterruptedException, ExecutionException {
-        assertNotCompatible(S, IX);
-    }
-
-    @Test
-    public void compatible_S_IX_interruptibly() throws InterruptedException, ExecutionException {
-        assertNotCompatibleInterruptibly(S, IX);
-    }
-
-    @Test
-    public void compatible_S_S() throws InterruptedException, ExecutionException {
-        assertCompatible(S, S);
-    }
-
-    @Test
-    public void compatible_S_S_interruptibly() throws InterruptedException, ExecutionException {
-        assertCompatibleInterruptibly(S, S);
-    }
-
-    @Test
-    public void compatible_S_SIX() throws InterruptedException, ExecutionException {
-        assertNotCompatible(S, SIX);
-    }
-
-    @Test
-    public void compatible_S_SIX_interruptibly() throws InterruptedException, ExecutionException {
-        assertNotCompatibleInterruptibly(S, SIX);
-    }
-
-    @Test
-    public void compatible_S_X() throws InterruptedException, ExecutionException {
-        assertNotCompatible(S, X);
-    }
-
-    @Test
-    public void compatible_S_X_interruptibly() throws InterruptedException, ExecutionException {
-        assertNotCompatibleInterruptibly(S, X);
-    }
-
-    @Test
-    public void compatible_SIX_IS() throws InterruptedException, ExecutionException {
-        assertCompatible(SIX, IS);
-    }
-
-    @Test
-    public void compatible_SIX_IS_interruptibly() throws InterruptedException, ExecutionException {
-        assertCompatibleInterruptibly(SIX, IS);
-    }
-
-    @Test
-    public void compatible_SIX_IX() throws InterruptedException, ExecutionException {
-        assertNotCompatible(SIX, IX);
-    }
-
-    @Test
-    public void compatible_SIX_IX_interruptibly() throws InterruptedException, ExecutionException {
-        assertNotCompatibleInterruptibly(SIX, IX);
-    }
-
-    @Test
-    public void compatible_SIX_S() throws InterruptedException, ExecutionException {
-        assertNotCompatible(SIX, S);
-    }
-
-    @Test
-    public void compatible_SIX_S_interruptibly() throws InterruptedException, ExecutionException {
-        assertNotCompatibleInterruptibly(SIX, S);
-    }
-
-    @Test
-    public void compatible_SIX_SIX() throws InterruptedException, ExecutionException {
-        assertNotCompatible(SIX, SIX);
-    }
-
-    @Test
-    public void compatible_SIX_SIX_interruptibly() throws InterruptedException, ExecutionException {
-        assertNotCompatibleInterruptibly(SIX, SIX);
-    }
-
-    @Test
-    public void compatible_SIX_X() throws InterruptedException, ExecutionException {
-        assertNotCompatible(SIX, X);
-    }
-
-    @Test
-    public void compatible_SIX_X_interruptibly() throws InterruptedException, ExecutionException {
-        assertNotCompatibleInterruptibly(SIX, X);
-    }
-
-    @Test
-    public void compatible_X_IS() throws InterruptedException, ExecutionException {
-        assertNotCompatible(X, IS);
-    }
-
-    @Test
-    public void compatible_X_IS_interruptibly() throws InterruptedException, ExecutionException {
-        assertNotCompatibleInterruptibly(X, IS);
-    }
-
-    @Test
-    public void compatible_X_IX() throws InterruptedException, ExecutionException {
-        assertNotCompatible(X, IX);
-    }
-
-    @Test
-    public void compatible_X_IX_interruptibly() throws InterruptedException, ExecutionException {
-        assertNotCompatibleInterruptibly(X, IX);
-    }
-
-    @Test
-    public void compatible_X_S() throws InterruptedException, ExecutionException {
-        assertNotCompatible(X, S);
-    }
-
-    @Test
-    public void compatible_X_S_interruptibly() throws InterruptedException, ExecutionException {
-        assertNotCompatibleInterruptibly(X, S);
-    }
-
-    @Test
-    public void compatible_X_SIX() throws InterruptedException, ExecutionException {
-        assertNotCompatible(X, SIX);
-    }
-
-    @Test
-    public void compatible_X_SIX_interruptibly() throws InterruptedException, ExecutionException {
-        assertNotCompatibleInterruptibly(X, SIX);
-    }
-
-    @Test
-    public void compatible_X_X() throws InterruptedException, ExecutionException {
-        assertNotCompatible(X, X);
-    }
-
-    @Test
-    public void compatible_X_X_interruptibly() throws InterruptedException, ExecutionException {
-        assertNotCompatibleInterruptibly(X, X);
-    }
-
-    private static void assertCompatible(final LockMode mode1, final LockMode mode2) throws InterruptedException, ExecutionException {
-        final List<Future<Boolean>> futures = checkCompatibility(mode1, mode2);
+    private static void assertCompatible(final LockMode mode1, final LockMode mode2, final Locker lockFn)
+            throws InterruptedException, ExecutionException {
+        final List<Future<Boolean>> futures = checkCompatibility(mode1, mode2, lockFn);
         for (final Future<Boolean> future : futures) {
             assertTrue(future.isDone());
             assertFalse(future.isCancelled());
@@ -299,18 +113,9 @@ public class CompatibilityTest {
         }
     }
 
-    private static void assertCompatibleInterruptibly(final LockMode mode1, final LockMode mode2) throws InterruptedException, ExecutionException {
-        final List<Future<Boolean>> futures = checkCompatibilityInterruptibly(mode1, mode2);
-        for (final Future<Boolean> future : futures) {
-            assertTrue(future.isDone());
-            assertFalse(future.isCancelled());
-
-            assertTrue(future.get());
-        }
-    }
-
-    private static void assertNotCompatible(final LockMode mode1, final LockMode mode2) throws InterruptedException, ExecutionException {
-        final List<Future<Boolean>> futures = checkCompatibility(mode1, mode2);
+    private static void assertNotCompatible(final LockMode mode1, final LockMode mode2, final Locker lockFn)
+            throws InterruptedException, ExecutionException {
+        final List<Future<Boolean>> futures = checkCompatibility(mode1, mode2, lockFn);
         for (final Future<Boolean> future : futures) {
             assertTrue(future.isDone());
 
@@ -318,34 +123,14 @@ public class CompatibilityTest {
         }
     }
 
-    private static void assertNotCompatibleInterruptibly(final LockMode mode1, final LockMode mode2) throws InterruptedException, ExecutionException {
-        final List<Future<Boolean>> futures = checkCompatibilityInterruptibly(mode1, mode2);
-        for (final Future<Boolean> future : futures) {
-            assertTrue(future.isDone());
-
-            assertTrue(future.isCancelled());
-        }
-    }
-
-    private static List<Future<Boolean>> checkCompatibility(final LockMode mode1, final LockMode mode2) throws InterruptedException {
+    private static List<Future<Boolean>> checkCompatibility(final LockMode mode1, final LockMode mode2,
+            final Locker lockFn) throws InterruptedException {
         final MultiLock multiLock = new MultiLock();
 
         final CountDownLatch latch = new CountDownLatch(2);
 
-        final Callable<Boolean> thread1 = new LockAcquirer(multiLock, mode1, latch);
-        final Callable<Boolean> thread2 = new LockAcquirer(multiLock, mode2, latch);
-
-        final ExecutorService executorService = Executors.newFixedThreadPool(2);
-        return executorService.invokeAll(Arrays.asList(thread1, thread2), LOCK_ACQUISITION_TIMEOUT, TimeUnit.MILLISECONDS);
-    }
-
-    private static List<Future<Boolean>> checkCompatibilityInterruptibly(final LockMode mode1, final LockMode mode2) throws InterruptedException {
-        final MultiLock multiLock = new MultiLock();
-
-        final CountDownLatch latch = new CountDownLatch(2);
-
-        final Callable<Boolean> thread1 = new LockInterruptiblyAcquirer(multiLock, mode1, latch);
-        final Callable<Boolean> thread2 = new LockInterruptiblyAcquirer(multiLock, mode2, latch);
+        final Callable<Boolean> thread1 = new LockAcquirer(multiLock, mode1, lockFn, latch);
+        final Callable<Boolean> thread2 = new LockAcquirer(multiLock, mode2, lockFn, latch);
 
         final ExecutorService executorService = Executors.newFixedThreadPool(2);
         return executorService.invokeAll(Arrays.asList(thread1, thread2), LOCK_ACQUISITION_TIMEOUT, TimeUnit.MILLISECONDS);
@@ -354,39 +139,20 @@ public class CompatibilityTest {
     private static class LockAcquirer implements Callable<Boolean> {
         private final MultiLock multiLock;
         private final LockMode lockMode;
+        private final Locker lockFn;
         private final CountDownLatch latch;
 
-        public LockAcquirer(final MultiLock multiLock, final LockMode lockMode, final CountDownLatch latch) {
+        public LockAcquirer(final MultiLock multiLock, final LockMode lockMode, final Locker lockFn,
+                final CountDownLatch latch) {
             this.multiLock = multiLock;
             this.lockMode = lockMode;
+            this.lockFn = lockFn;
             this.latch = latch;
         }
 
         @Override
         public Boolean call() throws Exception {
-            lockMode.lock(multiLock);
-
-            latch.countDown();
-            latch.await();
-
-            return true;
-        }
-    }
-
-    private static class LockInterruptiblyAcquirer implements Callable<Boolean> {
-        private final MultiLock multiLock;
-        private final LockMode lockMode;
-        private final CountDownLatch latch;
-
-        public LockInterruptiblyAcquirer(final MultiLock multiLock, final LockMode lockMode, final CountDownLatch latch) {
-            this.multiLock = multiLock;
-            this.lockMode = lockMode;
-            this.latch = latch;
-        }
-
-        @Override
-        public Boolean call() throws InterruptedException {
-            lockMode.lockInterruptibly(multiLock);
+            lockFn.lock(lockMode, multiLock);
 
             latch.countDown();
             latch.await();

@@ -1,10 +1,17 @@
 package uk.ac.ic.doc.slurp.multilock;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -30,117 +37,47 @@ import static uk.ac.ic.doc.slurp.multilock.LockMode.*;
  */
 public class DowngradeTest {
 
-    private static final long LOCK_ACQUISITION_TIMEOUT = 40;        // TODO(AR) this might need to be longer on slower machines...
+    // TODO(AR) this might need to be longer on slower machines...
+    private static final long LOCK_ACQUISITION_TIMEOUT = 40;
 
-    @Test
-    public void downgrade_IX_IS() throws InterruptedException, ExecutionException {
-        assertDowngradable(IX, IS);
+    static List<Arguments> downgradeModesProvider() {
+        return Arrays.asList(
+                Arguments.of(IX,    IS),
+                Arguments.of(S,     IS),
+                Arguments.of(SIX,   IX),
+                Arguments.of(SIX,   S),
+                Arguments.of(SIX,   IS),
+                Arguments.of(X,     SIX),
+                Arguments.of(X,     IX),
+                Arguments.of(X,     S),
+                Arguments.of(X,     IS)
+        );
     }
 
-    @Test
-    public void downgrade_IX_IS_interruptibly() throws InterruptedException, ExecutionException {
-        assertDowngradableInterruptibly(IX, IS);
+    @ParameterizedTest(name = "from {0} to {1}")
+    @DisplayName("Downgrade Lock")
+    @MethodSource("downgradeModesProvider")
+    public void downgrade(final LockMode fromMode, final LockMode toMode)
+            throws InterruptedException, ExecutionException {
+        assertDowngradable(fromMode, toMode, (mode, multiLock) -> { mode.lock(multiLock); return true; });
     }
 
-    @Test
-    public void downgrade_S_IS() throws InterruptedException, ExecutionException {
-        assertDowngradable(S, IS);
+    @ParameterizedTest(name = "from {0} to {1}")
+    @DisplayName("Downgrade Lock Interruptibly")
+    @MethodSource("downgradeModesProvider")
+    public void downgradeInterruptibly(final LockMode fromMode, final LockMode toMode)
+            throws InterruptedException, ExecutionException {
+        assertDowngradable(fromMode, toMode, (mode, multiLock) -> { mode.lockInterruptibly(multiLock); return true; });
     }
 
-    @Test
-    public void downgrade_S_IS_interruptibly() throws InterruptedException, ExecutionException {
-        assertDowngradableInterruptibly(S, IS);
-    }
-
-    @Test
-    public void downgrade_SIX_IX() throws InterruptedException, ExecutionException {
-        assertDowngradable(SIX, IX);
-    }
-
-    @Test
-    public void downgrade_SIX_IX_interruptibly() throws InterruptedException, ExecutionException {
-        assertDowngradableInterruptibly(SIX, IX);
-    }
-
-    @Test
-    public void downgrade_SIX_S() throws InterruptedException, ExecutionException {
-        assertDowngradable(SIX, S);
-    }
-
-    @Test
-    public void downgrade_SIX_S_interruptibly() throws InterruptedException, ExecutionException {
-        assertDowngradableInterruptibly(SIX, S);
-    }
-
-    @Test
-    public void downgrade_SIX_IS() throws InterruptedException, ExecutionException {
-        assertDowngradable(SIX, IS);
-    }
-
-    @Test
-    public void downgrade_SIX_IS_interruptibly() throws InterruptedException, ExecutionException {
-        assertDowngradableInterruptibly(SIX, IS);
-    }
-
-    @Test
-    public void downgrade_X_SIX() throws InterruptedException, ExecutionException {
-        assertDowngradable(X, SIX);
-    }
-
-    @Test
-    public void downgrade_X_SIX_interruptibly() throws InterruptedException, ExecutionException {
-        assertDowngradableInterruptibly(X, SIX);
-    }
-
-    @Test
-    public void downgrade_X_IX() throws InterruptedException, ExecutionException {
-        assertDowngradable(X, IX);
-    }
-
-    @Test
-    public void downgrade_X_IX_interruptibly() throws InterruptedException, ExecutionException {
-        assertDowngradableInterruptibly(X, IX);
-    }
-
-    @Test
-    public void downgrade_X_S() throws InterruptedException, ExecutionException {
-        assertDowngradable(X, S);
-    }
-
-    @Test
-    public void downgrade_X_S_interruptibly() throws InterruptedException, ExecutionException {
-        assertDowngradableInterruptibly(X, S);
-    }
-
-    @Test
-    public void downgrade_X_IS() throws InterruptedException, ExecutionException {
-        assertDowngradable(X, IS);
-    }
-
-    @Test
-    public void downgrade_X_IS_interruptibly() throws InterruptedException, ExecutionException {
-        assertDowngradableInterruptibly(X, IS);
-    }
-
-    private static void assertDowngradable(final LockMode from, final LockMode to) throws InterruptedException, ExecutionException {
+    private static void assertDowngradable(final LockMode from, final LockMode to, final Locker lockFn)
+            throws InterruptedException, ExecutionException {
         final MultiLock multiLock = new MultiLock();
 
         final ExecutorService executorService = Executors.newSingleThreadExecutor();
-        final List<Future<Boolean>> futures = executorService.invokeAll(Arrays.asList(new Downgrade(multiLock, from, to)), LOCK_ACQUISITION_TIMEOUT, TimeUnit.MILLISECONDS);
-
-        for (final Future<Boolean> future : futures) {
-            assertTrue(future.isDone());
-            assertFalse(future.isCancelled());
-
-            assertTrue(future.get());
-        }
-    }
-
-    private static void assertDowngradableInterruptibly(final LockMode from, final LockMode to) throws InterruptedException, ExecutionException {
-        final MultiLock multiLock = new MultiLock();
-
-        final ExecutorService executorService = Executors.newSingleThreadExecutor();
-        final List<Future<Boolean>> futures = executorService.invokeAll(Arrays.asList(new DowngradeInterruptibly(multiLock, from, to)), LOCK_ACQUISITION_TIMEOUT, TimeUnit.MILLISECONDS);
+        final List<Future<Boolean>> futures = executorService.invokeAll(
+                Arrays.asList(new Downgrade(multiLock, from, to, lockFn)),
+                LOCK_ACQUISITION_TIMEOUT, TimeUnit.MILLISECONDS);
 
         for (final Future<Boolean> future : futures) {
             assertTrue(future.isDone());
@@ -154,40 +91,20 @@ public class DowngradeTest {
         private final MultiLock multiLock;
         private final LockMode from;
         private final LockMode to;
-        //private final Function<LockMode, Boolean>
+        private final Locker lockFn;
 
-        private Downgrade(final MultiLock multiLock, final LockMode from, final LockMode to) {
+        private Downgrade(final MultiLock multiLock, final LockMode from, final LockMode to, final Locker lockFn) {
             this.multiLock = multiLock;
             this.from = from;
             this.to = to;
-        }
-
-        @Override
-        public Boolean call() {
-            from.lock(multiLock);
-            to.lock(multiLock);
-            from.unlock(multiLock);
-            return true;
-        }
-    }
-
-    private static class DowngradeInterruptibly implements Callable<Boolean> {
-        private final MultiLock multiLock;
-        private final LockMode from;
-        private final LockMode to;
-
-        private DowngradeInterruptibly(final MultiLock multiLock, final LockMode from, final LockMode to) {
-            this.multiLock = multiLock;
-            this.from = from;
-            this.to = to;
+            this.lockFn = lockFn;
         }
 
         @Override
         public Boolean call() throws InterruptedException {
-            from.lockInterruptibly(multiLock);
-            to.lockInterruptibly(multiLock);
+            lockFn.lock(from, multiLock);
+            lockFn.lock(to, multiLock);
             from.unlock(multiLock);
-
             return true;
         }
     }

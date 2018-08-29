@@ -1,6 +1,10 @@
 package uk.ac.ic.doc.slurp.multilock;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Arrays;
 import java.util.List;
@@ -30,117 +34,47 @@ import static uk.ac.ic.doc.slurp.multilock.LockMode.*;
  */
 public class UpgradeTest {
 
-    private static final long LOCK_ACQUISITION_TIMEOUT = 40;        // TODO(AR) this might need to be longer on slower machines...
+    // TODO(AR) this might need to be longer on slower machines...
+    private static final long LOCK_ACQUISITION_TIMEOUT = 40;
 
-    @Test
-    public void upgrade_IS_IX() throws InterruptedException, ExecutionException {
-        assertUpgradeable(IS, IX);
+    static List<Arguments> upgradeModesProvider() {
+        return Arrays.asList(
+                Arguments.of(IS,    IX),
+                Arguments.of(IS,    S),
+                Arguments.of(IS,    SIX),
+                Arguments.of(IS,    X),
+                Arguments.of(IX,    SIX),
+                Arguments.of(IX,    X),
+                Arguments.of(S,     SIX),
+                Arguments.of(S,     X),
+                Arguments.of(SIX,   X)
+        );
     }
 
-    @Test
-    public void upgrade_IS_IX_interruptibly() throws InterruptedException, ExecutionException {
-        assertUpgradeableInterruptibly(IS, IX);
+    @ParameterizedTest(name = "from {0} to {1}")
+    @DisplayName("Upgrade Lock")
+    @MethodSource("upgradeModesProvider")
+    public void downgrade(final LockMode fromMode, final LockMode toMode)
+            throws InterruptedException, ExecutionException {
+        assertUpgradeable(fromMode, toMode, (mode, multiLock) -> { mode.lock(multiLock); return true; });
     }
 
-    @Test
-    public void upgrade_IS_S() throws InterruptedException, ExecutionException {
-        assertUpgradeable(IS, S);
+    @ParameterizedTest(name = "from {0} to {1}")
+    @DisplayName("Upgrade Lock Interruptibly")
+    @MethodSource("upgradeModesProvider")
+    public void downgradeInterruptibly(final LockMode fromMode, final LockMode toMode)
+            throws InterruptedException, ExecutionException {
+        assertUpgradeable(fromMode, toMode, (mode, multiLock) -> { mode.lockInterruptibly(multiLock); return true; });
     }
 
-    @Test
-    public void upgrade_IS_S_interruptibly() throws InterruptedException, ExecutionException {
-        assertUpgradeableInterruptibly(IS, S);
-    }
-
-    @Test
-    public void upgrade_IS_SIX() throws InterruptedException, ExecutionException {
-        assertUpgradeable(IS, SIX);
-    }
-
-    @Test
-    public void upgrade_IS_SIX_interruptibly() throws InterruptedException, ExecutionException {
-        assertUpgradeableInterruptibly(IS, SIX);
-    }
-
-    @Test
-    public void upgrade_IS_X() throws InterruptedException, ExecutionException {
-        assertUpgradeable(IS, X);
-    }
-
-    @Test
-    public void upgrade_IS_X_interruptibly() throws InterruptedException, ExecutionException {
-        assertUpgradeableInterruptibly(IS, X);
-    }
-
-    @Test
-    public void upgrade_IX_SIX() throws InterruptedException, ExecutionException {
-        assertUpgradeable(IX, SIX);
-    }
-
-    @Test
-    public void upgrade_IX_SIX_interruptibly() throws InterruptedException, ExecutionException {
-        assertUpgradeableInterruptibly(IX, SIX);
-    }
-
-    @Test
-    public void upgrade_IX_X() throws InterruptedException, ExecutionException {
-        assertUpgradeable(IX, X);
-    }
-
-    @Test
-    public void upgrade_IX_X_interruptibly() throws InterruptedException, ExecutionException {
-        assertUpgradeableInterruptibly(IX, X);
-    }
-
-    @Test
-    public void upgrade_S_SIX() throws InterruptedException, ExecutionException {
-        assertUpgradeable(S, SIX);
-    }
-
-    @Test
-    public void upgrade_S_SIX_interruptibly() throws InterruptedException, ExecutionException {
-        assertUpgradeableInterruptibly(S, SIX);
-    }
-
-    @Test
-    public void upgrade_S_X() throws InterruptedException, ExecutionException {
-        assertUpgradeable(S, X);
-    }
-
-    @Test
-    public void upgrade_S_X_interruptibly() throws InterruptedException, ExecutionException {
-        assertUpgradeableInterruptibly(S, X);
-    }
-
-    @Test
-    public void upgrade_SIX_X() throws InterruptedException, ExecutionException {
-        assertUpgradeable(SIX, X);
-    }
-
-    @Test
-    public void upgrade_SIX_X_interruptibly() throws InterruptedException, ExecutionException {
-        assertUpgradeableInterruptibly(SIX, X);
-    }
-
-    private static void assertUpgradeable(final LockMode from, final LockMode to) throws InterruptedException, ExecutionException {
+    private static void assertUpgradeable(final LockMode from, final LockMode to, final Locker lockFn)
+            throws InterruptedException, ExecutionException {
         final MultiLock multiLock = new MultiLock();
 
         final ExecutorService executorService = Executors.newSingleThreadExecutor();
-        final List<Future<Boolean>> futures = executorService.invokeAll(Arrays.asList(new Upgrade(multiLock, from, to)), LOCK_ACQUISITION_TIMEOUT, TimeUnit.MILLISECONDS);
-
-        for (final Future<Boolean> future : futures) {
-            assertTrue(future.isDone());
-            assertFalse(future.isCancelled());
-
-            assertTrue(future.get());
-        }
-    }
-
-    private static void assertUpgradeableInterruptibly(final LockMode from, final LockMode to) throws InterruptedException, ExecutionException {
-        final MultiLock multiLock = new MultiLock();
-
-        final ExecutorService executorService = Executors.newSingleThreadExecutor();
-        final List<Future<Boolean>> futures = executorService.invokeAll(Arrays.asList(new UpgradeInterruptibly(multiLock, from, to)), LOCK_ACQUISITION_TIMEOUT, TimeUnit.MILLISECONDS);
+        final List<Future<Boolean>> futures = executorService.invokeAll(
+                Arrays.asList(new Upgrade(multiLock, from, to, lockFn)),
+                LOCK_ACQUISITION_TIMEOUT, TimeUnit.MILLISECONDS);
 
         for (final Future<Boolean> future : futures) {
             assertTrue(future.isDone());
@@ -154,37 +88,19 @@ public class UpgradeTest {
         private final MultiLock multiLock;
         private final LockMode from;
         private final LockMode to;
+        private final Locker lockFn;
 
-        private Upgrade(final MultiLock multiLock, final LockMode from, final LockMode to) {
+        private Upgrade(final MultiLock multiLock, final LockMode from, final LockMode to, final Locker lockFn) {
             this.multiLock = multiLock;
             this.from = from;
             this.to = to;
-        }
-
-        @Override
-        public Boolean call() {
-            from.lock(multiLock);
-            to.lock(multiLock);
-            from.unlock(multiLock);
-            return true;
-        }
-    }
-
-    private static class UpgradeInterruptibly implements Callable<Boolean> {
-        private final MultiLock multiLock;
-        private final LockMode from;
-        private final LockMode to;
-
-        private UpgradeInterruptibly(final MultiLock multiLock, final LockMode from, final LockMode to) {
-            this.multiLock = multiLock;
-            this.from = from;
-            this.to = to;
+            this.lockFn = lockFn;
         }
 
         @Override
         public Boolean call() throws InterruptedException {
-            from.lockInterruptibly(multiLock);
-            to.lockInterruptibly(multiLock);
+            lockFn.lock(from, multiLock);
+            lockFn.lock(to, multiLock);
             from.unlock(multiLock);
             return true;
         }
