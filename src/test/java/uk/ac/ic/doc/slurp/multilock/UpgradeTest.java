@@ -163,14 +163,10 @@ public class UpgradeTest {
 
         @Override
         public Boolean call() {
-            if (from.lock(multiLock)) {
-                if (to.lock(multiLock)) {
-                    from.unlock(multiLock);
-
-                    return true;
-                }
-            }
-            return false;
+            from.lock(multiLock);
+            to.lock(multiLock);
+            from.unlock(multiLock);
+            return true;
         }
     }
 

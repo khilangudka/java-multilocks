@@ -19,11 +19,11 @@ public class HierarchicalMultiLock extends MultiLock {
     }
 
     @Override
-    public boolean readLock() {
+    public void readLock() {
         if (parent != null) {
             parent.intentionReadLock();
         }
-        return super.readLock();
+        super.readLock();
     }
 
     @Override
@@ -43,11 +43,11 @@ public class HierarchicalMultiLock extends MultiLock {
     }
 
     @Override
-    public boolean writeLock() {
+    public void writeLock() {
         if (parent != null) {
             parent.intentionWriteLock();
         }
-        return super.writeLock();
+        super.writeLock();
     }
 
     @Override
@@ -67,11 +67,11 @@ public class HierarchicalMultiLock extends MultiLock {
     }
 
     @Override
-    public boolean intentionReadLock() {
+    public void intentionReadLock() {
         if (parent != null) {
             parent.intentionReadLock();
         }
-        return super.intentionReadLock();
+        super.intentionReadLock();
     }
 
     @Override
@@ -91,11 +91,11 @@ public class HierarchicalMultiLock extends MultiLock {
     }
 
     @Override
-    public boolean intentionWriteLock() {
+    public void intentionWriteLock() {
         if (parent != null) {
             parent.intentionWriteLock();
         }
-        return super.intentionWriteLock();
+        super.intentionWriteLock();
     }
 
     @Override

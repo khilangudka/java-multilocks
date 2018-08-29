@@ -452,36 +452,32 @@ public class MultiLock {
         }
     }
     
-    public boolean readLock() {
+    public void readLock() {
         sync.acquireShared(S_UNIT);
-        return true;
     }
 
     public void readLockInterruptibly() throws InterruptedException {
         sync.acquireSharedInterruptibly(S_UNIT);
     }
     
-    public boolean writeLock() {
+    public void writeLock() {
         sync.acquire(X_UNIT);
-        return true;
     }
 
     public void writeLockInterruptibly() throws InterruptedException {
         sync.acquireInterruptibly(X_UNIT);
     }
     
-    public boolean intentionReadLock() {
+    public void intentionReadLock() {
         sync.acquireShared(IS_UNIT);
-        return true;
     }
 
     public void intentionReadLockInterruptibly() throws InterruptedException {
         sync.acquireSharedInterruptibly(IS_UNIT);
     }
     
-    public boolean intentionWriteLock() {
+    public void intentionWriteLock() {
         sync.acquireShared(IX_UNIT);
-        return true;
     }
 
     public void intentionWriteLockInterruptibly() throws InterruptedException {

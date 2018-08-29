@@ -364,12 +364,12 @@ public class CompatibilityTest {
 
         @Override
         public Boolean call() throws Exception {
-            final boolean lockResult = lockMode.lock(multiLock);
+            lockMode.lock(multiLock);
 
             latch.countDown();
             latch.await();
 
-            return lockResult;
+            return true;
         }
     }
 

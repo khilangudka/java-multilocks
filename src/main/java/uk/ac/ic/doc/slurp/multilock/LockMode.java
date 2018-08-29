@@ -33,11 +33,9 @@ public enum LockMode {
      * Locks the MultiLock with this mode.
      *
      * @param multiLock the MultiLock object.
-     *
-     * @return true if the lock succeeded, false otherwise.
      */
-    public boolean lock(final MultiLock multiLock) {
-        return lock(multiLock, this);
+    public void lock(final MultiLock multiLock) {
+        lock(multiLock, this);
     }
 
     /**
@@ -70,34 +68,32 @@ public enum LockMode {
      *
      * @throws IllegalArgumentException if an unknown mode is provided.
      */
-    public static boolean lock(final MultiLock multiLock, final LockMode lockMode) {
-        final boolean lockResult;
+    public static void lock(final MultiLock multiLock, final LockMode lockMode) {
         switch (lockMode) {
             case IS:
-                lockResult = multiLock.intentionReadLock();
+                multiLock.intentionReadLock();
                 break;
 
             case IX:
-                lockResult = multiLock.intentionWriteLock();
+                multiLock.intentionWriteLock();
                 break;
 
             case S:
-                lockResult = multiLock.readLock();
+                multiLock.readLock();
                 break;
 
             case SIX:
-                lockResult = multiLock.readLock() && multiLock.intentionWriteLock();
+                multiLock.readLock();
+                multiLock.intentionWriteLock();
                 break;
 
             case X:
-                lockResult = multiLock.writeLock();
+                multiLock.writeLock();
                 break;
 
             default:
                 throw new IllegalArgumentException("Unknown lock mode: " + lockMode);
         }
-
-        return lockResult;
     }
 
     /**

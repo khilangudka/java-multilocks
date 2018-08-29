@@ -118,9 +118,8 @@ public class ReentrancyTest {
         public Integer call() {
             int success = 0;
             for (int i = 0; i < count; i++) {
-                if (lockMode.lock(multiLock)) {
-                    success++;
-                }
+                lockMode.lock(multiLock);
+                success++;
             }
             return success;
         }

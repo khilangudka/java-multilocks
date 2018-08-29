@@ -154,6 +154,7 @@ public class DowngradeTest {
         private final MultiLock multiLock;
         private final LockMode from;
         private final LockMode to;
+        //private final Function<LockMode, Boolean>
 
         private Downgrade(final MultiLock multiLock, final LockMode from, final LockMode to) {
             this.multiLock = multiLock;
@@ -163,14 +164,10 @@ public class DowngradeTest {
 
         @Override
         public Boolean call() {
-            if (from.lock(multiLock)) {
-                if (to.lock(multiLock)) {
-                    from.unlock(multiLock);
-
-                    return true;
-                }
-            }
-            return false;
+            from.lock(multiLock);
+            to.lock(multiLock);
+            from.unlock(multiLock);
+            return true;
         }
     }
 
