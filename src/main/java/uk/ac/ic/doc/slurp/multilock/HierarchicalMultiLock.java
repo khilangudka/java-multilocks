@@ -27,6 +27,25 @@ public class HierarchicalMultiLock extends MultiLock {
     }
 
     @Override
+    public boolean tryReadLock() {
+        if (parent != null) {
+            if(!parent.tryIntentionReadLock()) {
+                return false;
+            }
+        }
+
+        boolean locked = false;
+        try {
+            locked = super.tryReadLock();
+        } finally {
+            if (!locked && parent != null) {
+                parent.unlockIntentionRead();
+            }
+        }
+        return locked;
+    }
+
+    @Override
     public void readLockInterruptibly() throws InterruptedException {
         if (parent != null) {
             parent.intentionReadLockInterruptibly();
@@ -48,6 +67,25 @@ public class HierarchicalMultiLock extends MultiLock {
             parent.intentionWriteLock();
         }
         super.writeLock();
+    }
+
+    @Override
+    public boolean tryWriteLock() {
+        if (parent != null) {
+            if(!parent.tryIntentionWriteLock()) {
+                return false;
+            }
+        }
+
+        boolean locked = false;
+        try {
+            locked = super.tryWriteLock();
+        } finally {
+            if (!locked && parent != null) {
+                parent.unlockIntentionWrite();
+            }
+        }
+        return locked;
     }
 
     @Override
@@ -75,6 +113,25 @@ public class HierarchicalMultiLock extends MultiLock {
     }
 
     @Override
+    public boolean tryIntentionReadLock() {
+        if (parent != null) {
+            if(!parent.tryIntentionReadLock()) {
+                return false;
+            }
+        }
+
+        boolean locked = false;
+        try {
+            locked = super.tryIntentionReadLock();
+        } finally {
+            if (!locked && parent != null) {
+                parent.unlockIntentionRead();
+            }
+        }
+        return locked;
+    }
+
+    @Override
     public void intentionReadLockInterruptibly() throws InterruptedException {
         if (parent != null) {
             parent.intentionReadLockInterruptibly();
@@ -96,6 +153,25 @@ public class HierarchicalMultiLock extends MultiLock {
             parent.intentionWriteLock();
         }
         super.intentionWriteLock();
+    }
+
+    @Override
+    public boolean tryIntentionWriteLock() {
+        if (parent != null) {
+            if(!parent.tryIntentionWriteLock()) {
+                return false;
+            }
+        }
+
+        boolean locked = false;
+        try {
+            locked = super.tryIntentionWriteLock();
+        } finally {
+            if (!locked && parent != null) {
+                parent.unlockIntentionWrite();
+            }
+        }
+        return locked;
     }
 
     @Override

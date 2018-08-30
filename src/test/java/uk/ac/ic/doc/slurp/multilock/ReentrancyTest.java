@@ -45,6 +45,13 @@ public class ReentrancyTest {
         assertReentrant(lockMode, (mode, multiLock) -> { mode.lockInterruptibly(multiLock); return true; });
     }
 
+    @ParameterizedTest(name = "{0}")
+    @DisplayName("Reentrant Try")
+    @EnumSource(value = LockMode.class)
+    public void reentrantTry(final LockMode lockMode) throws InterruptedException, ExecutionException {
+        assertReentrant(lockMode, (mode, multiLock) -> { mode.tryLock(multiLock); return true; });
+    }
+
     private static void assertReentrant(final LockMode lockMode, final Locker lockFn)
             throws InterruptedException, ExecutionException {
         final MultiLock multiLock = new MultiLock();

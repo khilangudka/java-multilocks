@@ -67,6 +67,14 @@ public class UpgradeTest {
         assertUpgradeable(fromMode, toMode, (mode, multiLock) -> { mode.lockInterruptibly(multiLock); return true; });
     }
 
+    @ParameterizedTest(name = "from {0} to {1}")
+    @DisplayName("Upgrade Lock Try")
+    @MethodSource("upgradeModesProvider")
+    public void downgradeTry(final LockMode fromMode, final LockMode toMode)
+            throws InterruptedException, ExecutionException {
+        assertUpgradeable(fromMode, toMode, (mode, multiLock) -> mode.tryLock(multiLock));
+    }
+
     private static void assertUpgradeable(final LockMode from, final LockMode to, final Locker lockFn)
             throws InterruptedException, ExecutionException {
         final MultiLock multiLock = new MultiLock();

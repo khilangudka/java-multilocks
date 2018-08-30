@@ -70,6 +70,14 @@ public class DowngradeTest {
         assertDowngradable(fromMode, toMode, (mode, multiLock) -> { mode.lockInterruptibly(multiLock); return true; });
     }
 
+    @ParameterizedTest(name = "from {0} to {1}")
+    @DisplayName("Downgrade Lock Try")
+    @MethodSource("downgradeModesProvider")
+    public void downgradeTry(final LockMode fromMode, final LockMode toMode)
+            throws InterruptedException, ExecutionException {
+        assertDowngradable(fromMode, toMode, (mode, multiLock) -> mode.tryLock(multiLock));
+    }
+
     private static void assertDowngradable(final LockMode from, final LockMode to, final Locker lockFn)
             throws InterruptedException, ExecutionException {
         final MultiLock multiLock = new MultiLock();

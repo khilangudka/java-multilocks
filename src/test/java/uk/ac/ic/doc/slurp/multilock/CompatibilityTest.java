@@ -1,7 +1,6 @@
 package uk.ac.ic.doc.slurp.multilock;
 
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -78,7 +77,7 @@ public class CompatibilityTest {
         );
     }
 
-    @ParameterizedTest(name = "from {0} to {1}")
+    @ParameterizedTest(name = "{0} and {1}")
     @DisplayName("Compatible Modes")
     @MethodSource("compatibleModesProvider")
     public void compatible(final LockMode mode1, final LockMode mode2, final boolean compatible)
@@ -86,11 +85,11 @@ public class CompatibilityTest {
         if (compatible) {
             assertCompatible(mode1, mode2, (mode, multiLock) -> { mode.lock(multiLock); return true; });
         } else {
-            assertNotCompatible(mode1, mode2, (mode, multiLock) -> { mode.lock(multiLock); return true; });
+            assertNotCompatible(mode1, mode2, (mode, multiLock) -> { mode.lock(multiLock); return true; }, true);
         }
     }
 
-    @ParameterizedTest(name = "from {0} to {1}")
+    @ParameterizedTest(name = "{0} and {1}")
     @DisplayName("Compatible Modes Interruptibly")
     @MethodSource("compatibleModesProvider")
     public void compatibleInterruptibly(final LockMode mode1, final LockMode mode2, final boolean compatible)
@@ -98,10 +97,29 @@ public class CompatibilityTest {
         if (compatible) {
             assertCompatible(mode1, mode2, (mode, multiLock) -> { mode.lockInterruptibly(multiLock); return true; });
         } else {
-            assertNotCompatible(mode1, mode2, (mode, multiLock) -> { mode.lockInterruptibly(multiLock); return true; });
+            assertNotCompatible(mode1, mode2, (mode, multiLock) -> { mode.lockInterruptibly(multiLock); return true; }, true);
         }
     }
 
+    @ParameterizedTest(name = "{0} and {1}")
+    @DisplayName("Compatible Modes Try")
+    @MethodSource("compatibleModesProvider")
+    public void compatibleTry(final LockMode mode1, final LockMode mode2, final boolean compatible)
+            throws InterruptedException, ExecutionException {
+        if (compatible) {
+            assertCompatible(mode1, mode2, (mode, multiLock) -> mode.tryLock(multiLock));
+        } else {
+            assertNotCompatible(mode1, mode2, (mode, multiLock) -> mode.tryLock(multiLock), false);
+        }
+    }
+
+    /**
+     * Assert that two lock modes are compatible.
+     *
+     * @param mode1 the first lock mode
+     * @param mode2 the second lock mode
+     * @param lockFn the function for acquiring a lock
+     */
     private static void assertCompatible(final LockMode mode1, final LockMode mode2, final Locker lockFn)
             throws InterruptedException, ExecutionException {
         final List<Future<Boolean>> futures = checkCompatibility(mode1, mode2, lockFn);
@@ -113,14 +131,42 @@ public class CompatibilityTest {
         }
     }
 
-    private static void assertNotCompatible(final LockMode mode1, final LockMode mode2, final Locker lockFn)
+    /**
+     * Assert that two lock modes are not compatible.
+     *
+     * @param mode1 the first lock mode
+     * @param mode2 the second lock mode
+     * @param lockFn the function for acquiring a lock
+     * @param blockingAcquisition true if the {@code lockFn} makes lock acquisition calls which block
+     *     until the lock is granted, false otherwise.
+     */
+    private static void assertNotCompatible(final LockMode mode1, final LockMode mode2, final Locker lockFn,
+            final boolean blockingAcquisition)
             throws InterruptedException, ExecutionException {
         final List<Future<Boolean>> futures = checkCompatibility(mode1, mode2, lockFn);
+
+        Boolean locked = null;
+
         for (final Future<Boolean> future : futures) {
             assertTrue(future.isDone());
 
-            assertTrue(future.isCancelled());
+            if (!future.isCancelled()) {
+                if (locked == null) {
+                    locked = future.get();
+                } else {
+                    locked &= future.get();
+                }
+            }
         }
+
+        /*
+         * `locked` will be null if all futures were cancelled,
+         * this is because each of our LockAcquirer(s) only complete
+         * if all acquisitions succeed. When using blocking acquisitions
+         * if one acquisition fails, no tasks complete, so all futures
+         * end up marked as cancelled. See the latch in LockAcquirer#call()
+         */
+        assertTrue((blockingAcquisition && locked == null) || (!blockingAcquisition && !locked));
     }
 
     private static List<Future<Boolean>> checkCompatibility(final LockMode mode1, final LockMode mode2,
@@ -152,12 +198,12 @@ public class CompatibilityTest {
 
         @Override
         public Boolean call() throws Exception {
-            lockFn.lock(lockMode, multiLock);
+            final boolean locked = lockFn.lock(lockMode, multiLock);
 
             latch.countDown();
             latch.await();
 
-            return true;
+            return locked;
         }
     }
 }
