@@ -1,7 +1,6 @@
 package uk.ac.ic.doc.slurp.multilock;
 
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -12,6 +11,7 @@ import java.util.concurrent.*;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static uk.ac.ic.doc.slurp.multilock.Constants.LOCK_ACQUISITION_TIMEOUT;
 import static uk.ac.ic.doc.slurp.multilock.LockMode.*;
 
 /**
@@ -33,9 +33,6 @@ import static uk.ac.ic.doc.slurp.multilock.LockMode.*;
  * @author Adam Retter <adam@evolvedbinary.com>
  */
 public class UpgradeTest {
-
-    // TODO(AR) this might need to be longer on slower machines...
-    private static final long LOCK_ACQUISITION_TIMEOUT = 40;
 
     static List<Arguments> upgradeModesProvider() {
         return Arrays.asList(
@@ -73,6 +70,22 @@ public class UpgradeTest {
     public void downgradeTry(final LockMode fromMode, final LockMode toMode)
             throws InterruptedException, ExecutionException {
         assertUpgradeable(fromMode, toMode, (mode, multiLock) -> mode.tryLock(multiLock));
+    }
+
+    @ParameterizedTest(name = "from {0} to {1}")
+    @DisplayName("Upgrade Lock Try (short timeout)")
+    @MethodSource("upgradeModesProvider")
+    public void downgradeTryShortTimeout(final LockMode fromMode, final LockMode toMode)
+            throws InterruptedException, ExecutionException {
+        assertUpgradeable(fromMode, toMode, (mode, multiLock) -> mode.tryLock(multiLock, LOCK_ACQUISITION_TIMEOUT / 2, TimeUnit.MILLISECONDS));
+    }
+
+    @ParameterizedTest(name = "from {0} to {1}")
+    @DisplayName("Upgrade Lock Try (long timeout)")
+    @MethodSource("upgradeModesProvider")
+    public void downgradeTryLongTimeout(final LockMode fromMode, final LockMode toMode)
+            throws InterruptedException, ExecutionException {
+        assertUpgradeable(fromMode, toMode, (mode, multiLock) -> mode.tryLock(multiLock, LOCK_ACQUISITION_TIMEOUT * 2, TimeUnit.MILLISECONDS));
     }
 
     private static void assertUpgradeable(final LockMode from, final LockMode to, final Locker lockFn)

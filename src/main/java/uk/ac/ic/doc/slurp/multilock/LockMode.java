@@ -1,5 +1,7 @@
 package uk.ac.ic.doc.slurp.multilock;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * An Enumeration of the MultiLock modes.
  */
@@ -47,6 +49,22 @@ public enum LockMode {
      */
     public boolean tryLock(final MultiLock multiLock) {
         return tryLock(multiLock, this);
+    }
+
+    /**
+     * Attempts to lock the MultiLock with this mode.
+     *
+     * @param multiLock the MultiLock object.
+     * @param timeout the time to wait for acquiring the lock.
+     * @param unit the time unit of the timeout argument.
+     *
+     * @return true if the lock was acquired, false otherwise.
+     *
+     * @throws InterruptedException if the thread was interrupted
+     */
+    public boolean tryLock(final MultiLock multiLock, final long timeout, final TimeUnit unit)
+            throws InterruptedException {
+        return tryLock(multiLock, this, timeout, unit);
     }
 
     /**
@@ -141,6 +159,54 @@ public enum LockMode {
 
             case X:
                 return multiLock.tryWriteLock();
+
+            default:
+                throw new IllegalArgumentException("Unknown lock mode: " + lockMode);
+        }
+    }
+
+    /**
+     * Attempts to lock the MultiLock with the provided mode.
+     *
+     * @param multiLock the MultiLock object.
+     * @param lockMode the mode to lock the MultiLock.
+     * @param timeout the time to wait for acquiring the lock.
+     * @param unit the time unit of the timeout argument.
+     *
+     * @return true if the lock was acquired.
+     *
+     * @throws IllegalArgumentException if an unknown mode is provided.
+     * @throws InterruptedException if the thread was interrupted
+     */
+    public static boolean tryLock(final MultiLock multiLock, final LockMode lockMode, final long timeout,
+            final TimeUnit unit) throws InterruptedException {
+        switch (lockMode) {
+            case IS:
+                return multiLock.tryIntentionReadLock(timeout, unit);
+
+            case IX:
+                return multiLock.tryIntentionWriteLock(timeout, unit);
+
+            case S:
+                return multiLock.tryReadLock(timeout, unit);
+
+            case SIX:
+                if (!multiLock.tryReadLock(timeout, unit)) {
+                    return false;
+                }
+                try {
+                    if (!multiLock.tryIntentionWriteLock(timeout, unit)) {
+                        multiLock.unlockRead();
+                        return false;
+                    }
+                } catch (final InterruptedException e) {
+                    multiLock.unlockRead();
+                    throw e;
+                }
+                return true;
+
+            case X:
+                return multiLock.tryWriteLock(timeout, unit);
 
             default:
                 throw new IllegalArgumentException("Unknown lock mode: " + lockMode);

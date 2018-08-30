@@ -11,6 +11,7 @@ import java.util.concurrent.*;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static uk.ac.ic.doc.slurp.multilock.Constants.LOCK_ACQUISITION_TIMEOUT;
 import static uk.ac.ic.doc.slurp.multilock.LockMode.*;
 
 /**
@@ -39,9 +40,6 @@ import static uk.ac.ic.doc.slurp.multilock.LockMode.*;
  * @author Adam Retter <adam@evolvedbinary.com>
  */
 public class CompatibilityTest {
-
-    // TODO(AR) this might need to be longer on slower machines...
-    private static final long LOCK_ACQUISITION_TIMEOUT = 20;
 
     static List<Arguments> compatibleModesProvider() {
         return Arrays.asList(
@@ -110,6 +108,31 @@ public class CompatibilityTest {
             assertCompatible(mode1, mode2, (mode, multiLock) -> mode.tryLock(multiLock));
         } else {
             assertNotCompatible(mode1, mode2, (mode, multiLock) -> mode.tryLock(multiLock), false);
+        }
+    }
+
+    @ParameterizedTest(name = "{0} and {1}")
+    @DisplayName("Compatible Modes Try (short timeout)")
+    @MethodSource("compatibleModesProvider")
+    public void compatibleTryShortTimeout(final LockMode mode1, final LockMode mode2, final boolean compatible)
+            throws InterruptedException, ExecutionException {
+        if (compatible) {
+            assertCompatible(mode1, mode2, (mode, multiLock) -> mode.tryLock(multiLock, LOCK_ACQUISITION_TIMEOUT / 2, TimeUnit.MILLISECONDS));
+        } else {
+            assertNotCompatible(mode1, mode2, (mode, multiLock) -> mode.tryLock(multiLock, LOCK_ACQUISITION_TIMEOUT / 2, TimeUnit.MILLISECONDS), false);
+        }
+    }
+
+    @ParameterizedTest(name = "{0} and {1}")
+    @DisplayName("Compatible Modes Try (long timeout)")
+    @MethodSource("compatibleModesProvider")
+    public void compatibleTryLongTimeout(final LockMode mode1, final LockMode mode2, final boolean compatible)
+            throws InterruptedException, ExecutionException {
+        if (compatible) {
+            assertCompatible(mode1, mode2, (mode, multiLock) -> mode.tryLock(multiLock, LOCK_ACQUISITION_TIMEOUT * 2, TimeUnit.MILLISECONDS));
+        } else {
+            // NOTE: we set the blockingAcquisition=true parameter, as the timeout is greater than the ExecutorService's LOCK_ACQUISITION_TIMEOUT
+            assertNotCompatible(mode1, mode2, (mode, multiLock) -> mode.tryLock(multiLock, LOCK_ACQUISITION_TIMEOUT * 2, TimeUnit.MILLISECONDS), true);
         }
     }
 

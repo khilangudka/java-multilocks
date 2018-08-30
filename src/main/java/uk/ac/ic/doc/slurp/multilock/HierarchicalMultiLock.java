@@ -1,6 +1,7 @@
 package uk.ac.ic.doc.slurp.multilock;
 
 import javax.annotation.Nullable;
+import java.util.concurrent.TimeUnit;
 
 public class HierarchicalMultiLock extends MultiLock {
 
@@ -37,6 +38,35 @@ public class HierarchicalMultiLock extends MultiLock {
         boolean locked = false;
         try {
             locked = super.tryReadLock();
+        } finally {
+            if (!locked && parent != null) {
+                parent.unlockIntentionRead();
+            }
+        }
+        return locked;
+    }
+
+    /**
+     * @param timeout the time to wait for acquiring the locks. The actual time can be 2* this, as the
+     *     timeout is used twice, once for the parent and once for the node.
+     * @param unit the time unit of the timeout argument
+     */
+    @Override
+    public boolean tryReadLock(final long timeout, final TimeUnit unit) throws InterruptedException {
+        if (parent != null) {
+            if(!parent.tryIntentionReadLock(timeout, unit)) {
+                return false;
+            }
+        }
+
+        boolean locked = false;
+        try {
+            locked = super.tryReadLock(timeout, unit);
+        } catch (final InterruptedException e) {
+            if (parent != null) {
+                parent.unlockIntentionRead();
+            }
+            throw e;
         } finally {
             if (!locked && parent != null) {
                 parent.unlockIntentionRead();
@@ -88,6 +118,35 @@ public class HierarchicalMultiLock extends MultiLock {
         return locked;
     }
 
+    /**
+     * @param timeout the time to wait for acquiring the locks. The actual time can be 2* this, as the
+     *     timeout is used twice, once for the parent and once for the node.
+     * @param unit the time unit of the timeout argument
+     */
+    @Override
+    public boolean tryWriteLock(final long timeout, final TimeUnit unit) throws InterruptedException {
+        if (parent != null) {
+            if(!parent.tryIntentionWriteLock(timeout, unit)) {
+                return false;
+            }
+        }
+
+        boolean locked = false;
+        try {
+            locked = super.tryWriteLock(timeout, unit);
+        } catch (final InterruptedException e) {
+            if (parent != null) {
+                parent.unlockIntentionWrite();
+            }
+            throw e;
+        } finally {
+            if (!locked && parent != null) {
+                parent.unlockIntentionWrite();
+            }
+        }
+        return locked;
+    }
+
     @Override
     public void writeLockInterruptibly() throws InterruptedException {
         if (parent != null) {
@@ -131,6 +190,35 @@ public class HierarchicalMultiLock extends MultiLock {
         return locked;
     }
 
+    /**
+     * @param timeout the time to wait for acquiring the locks. The actual time can be 2* this, as the
+     *     timeout is used twice, once for the parent and once for the node.
+     * @param unit the time unit of the timeout argument
+     */
+    @Override
+    public boolean tryIntentionReadLock(final long timeout, final TimeUnit unit) throws InterruptedException {
+        if (parent != null) {
+            if(!parent.tryIntentionReadLock(timeout, unit)) {
+                return false;
+            }
+        }
+
+        boolean locked = false;
+        try {
+            locked = super.tryIntentionReadLock(timeout, unit);
+        } catch (final InterruptedException e) {
+            if (parent != null) {
+                parent.unlockIntentionRead();
+            }
+            throw e;
+        } finally {
+            if (!locked && parent != null) {
+                parent.unlockIntentionRead();
+            }
+        }
+        return locked;
+    }
+
     @Override
     public void intentionReadLockInterruptibly() throws InterruptedException {
         if (parent != null) {
@@ -166,6 +254,35 @@ public class HierarchicalMultiLock extends MultiLock {
         boolean locked = false;
         try {
             locked = super.tryIntentionWriteLock();
+        } finally {
+            if (!locked && parent != null) {
+                parent.unlockIntentionWrite();
+            }
+        }
+        return locked;
+    }
+
+    /**
+     * @param timeout the time to wait for acquiring the locks. The actual time can be 2* this, as the
+     *     timeout is used twice, once for the parent and once for the node.
+     * @param unit the time unit of the timeout argument
+     */
+    @Override
+    public boolean tryIntentionWriteLock(final long timeout, final TimeUnit unit) throws InterruptedException {
+        if (parent != null) {
+            if(!parent.tryIntentionWriteLock(timeout, unit)) {
+                return false;
+            }
+        }
+
+        boolean locked = false;
+        try {
+            locked = super.tryIntentionWriteLock(timeout, unit);
+        } catch (final InterruptedException e) {
+            if (parent != null) {
+                parent.unlockIntentionWrite();
+            }
+            throw e;
         } finally {
             if (!locked && parent != null) {
                 parent.unlockIntentionWrite();

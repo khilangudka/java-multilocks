@@ -92,7 +92,7 @@ public class MultiLock {
         @Override
         public boolean tryLock(final long time, final TimeUnit unit)
                 throws InterruptedException {
-            throw new UnsupportedOperationException();
+            return tryReadLock(time, unit);
         }
     }
     
@@ -126,7 +126,7 @@ public class MultiLock {
         @Override
         public boolean tryLock(final long time, final TimeUnit unit)
                 throws InterruptedException {
-            throw new UnsupportedOperationException();
+            return tryWriteLock(time, unit);
         }
     }
 
@@ -464,6 +464,10 @@ public class MultiLock {
         return sync.tryAcquireShared(S_UNIT) >= 0;
     }
 
+    public boolean tryReadLock(final long timeout, final TimeUnit unit) throws InterruptedException {
+        return sync.tryAcquireSharedNanos(S_UNIT, unit.toNanos(timeout));
+    }
+
     public void readLockInterruptibly() throws InterruptedException {
         sync.acquireSharedInterruptibly(S_UNIT);
     }
@@ -474,6 +478,10 @@ public class MultiLock {
 
     public boolean tryWriteLock() {
         return sync.tryAcquire(X_UNIT);
+    }
+
+    public boolean tryWriteLock(final long timeout, final TimeUnit unit) throws InterruptedException {
+        return sync.tryAcquireNanos(X_UNIT, unit.toNanos(timeout));
     }
 
     public void writeLockInterruptibly() throws InterruptedException {
@@ -488,6 +496,10 @@ public class MultiLock {
         return sync.tryAcquireShared(IS_UNIT) >= 0;
     }
 
+    public boolean tryIntentionReadLock(final long timeout, final TimeUnit unit) throws InterruptedException {
+        return sync.tryAcquireSharedNanos(IS_UNIT, unit.toNanos(timeout));
+    }
+
     public void intentionReadLockInterruptibly() throws InterruptedException {
         sync.acquireSharedInterruptibly(IS_UNIT);
     }
@@ -498,6 +510,10 @@ public class MultiLock {
 
     public boolean tryIntentionWriteLock() {
         return sync.tryAcquireShared(IX_UNIT) >= 0;
+    }
+
+    public boolean tryIntentionWriteLock(final long timeout, final TimeUnit unit) throws InterruptedException {
+        return sync.tryAcquireSharedNanos(IX_UNIT, unit.toNanos(timeout));
     }
 
     public void intentionWriteLockInterruptibly() throws InterruptedException {
