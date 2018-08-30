@@ -306,6 +306,8 @@ public class MultiLock {
                                 cachedHoldCounter = rh;
                                 return 1; // still return 1 because IS is always compatible
                             }                            
+                        } else {
+                            return -1;
                         }
                     }
                 }
@@ -332,6 +334,8 @@ public class MultiLock {
                                 cachedHoldCounter = rh;
                                 return 1; // still return 1 because IS is always compatible
                             }                            
+                        } else {
+                            return -1;
                         }
                     }
                 }
