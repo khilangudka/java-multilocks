@@ -121,8 +121,6 @@ public enum LockMode {
      * @param multiLock the MultiLock object.
      * @param lockMode the mode to lock the MultiLock.
      *
-     * @return true if the lock succeeded, false otherwise.
-     *
      * @throws IllegalArgumentException if an unknown mode is provided.
      */
     public static void lock(final MultiLock multiLock, final LockMode lockMode) {
@@ -162,7 +160,6 @@ public enum LockMode {
      * @return true if the lock was acquired.
      *
      * @throws IllegalArgumentException if an unknown mode is provided.
-     * @throws InterruptedException if the thread was interrupted
      */
     public static boolean tryLock(final MultiLock multiLock, final LockMode lockMode) {
         switch (lockMode) {

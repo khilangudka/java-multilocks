@@ -650,7 +650,7 @@ public class MultiLock {
     }
 
     /**
-     * {@see java.util.concurrent.locks.AbstractQueuedLongSynchronizer#isHeldExclusively()}
+     * See {@link java.util.concurrent.locks.AbstractQueuedLongSynchronizer#isHeldExclusively()}
      *
      * @return true if the current thread holds the write lock.
      */
