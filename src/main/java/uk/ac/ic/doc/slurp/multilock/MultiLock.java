@@ -340,6 +340,8 @@ public class MultiLock {
                     }
                 }
             }
+
+
         }
         
         private boolean updateState(long c, long arg, Thread current) {
@@ -453,6 +455,11 @@ public class MultiLock {
             int count = (int)xCount(holdCounts.get().state);
             //if (count == 0) readHolds.remove();
             return count;
+        }
+
+        @Override
+        public boolean isHeldExclusively() {
+            return super.isHeldExclusively();
         }
     }
     
@@ -622,6 +629,31 @@ public class MultiLock {
      */
     public int getWriteHoldCount() {
         return sync.getWriteHoldCount();
+    }
+
+
+
+    /**
+     * Queries whether any threads are waiting to acquire the read or
+     * write lock. Note that because cancellations may occur at any
+     * time, a {@code true} return does not guarantee that any other
+     * thread will ever acquire a lock.  This method is designed
+     * primarily for use in monitoring of the system state.
+     *
+     * @return {@code true} if there may be other threads waiting to
+     *         acquire the lock
+     */
+    public final boolean hasQueuedThreads() {
+        return sync.hasQueuedThreads();
+    }
+
+    /**
+     * {@see java.util.concurrent.locks.AbstractQueuedLongSynchronizer#isHeldExclusively()}
+     *
+     * @return true if the current thread holds the write lock.
+     */
+    public boolean isWriteLockedByCurrentThread() {
+        return sync.isHeldExclusively();
     }
 
     /**
