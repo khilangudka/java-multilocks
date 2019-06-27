@@ -80,12 +80,14 @@
                 <version>3.0</version>
                 <inherited>true</inherited>
                 <configuration>
-                    <header>com/mycila/maven/plugin/license/templates/BSD-2.txt</header>
+                    <header>BSD-2.txt</header>
                     <failIfMissing>true</failIfMissing>
                     <aggregate>true</aggregate>
                     <strictCheck>true</strictCheck>
                     <properties>
                         <owner>Khilan Gudka</owner>
+                        <modifications.year>2017</modifications.year>
+                        <modifications.owner>${project.organization.name}</modifications.owner>
                     </properties>
                     <excludes>
                         <exclude>pom.xml</exclude>
