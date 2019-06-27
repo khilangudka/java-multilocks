@@ -1,9 +1,30 @@
+# MutiLock
+
+[![Build Status](https://travis-ci.com/evolvedbinary/multilock.svg?branch=master)](https://travis-ci.com/evolvedbinary/mulitlock)
+
 Java implementation of Fast Multi-Level locks.
 
-**NOTE:** This is a Mavenized port of of the original https://github.com/kgudka/java-multilocks with a few additions.
+**NOTE:** This is a Mavenized port of the [original source code](https://github.com/kgudka/java-multilocks)
+with a few additions and modifications.
 
-This is the source-code accompanying our EC^2 2010 Workshop on Exploiting
-Concurrency Efficiently and Correctly position paper.
+The original source code was licensed under *The BSD 2-Clause License*,
+as *Copyright (c) 2010-2016 Khilan Gudka*.
 
-The paper can be found here:
-http://pubs.doc.ic.ac.uk/fast-multi-level-locks/
+We release our modifications under the same license but
+*Copyright (c) 2017-2019 Evolved Binary Ltd*.
+
+The original paper by Khilan Gudka and Susan Eisenbach entitled `Fast Multi-Level Locks for Java`
+can be found here: https://www.cl.cam.ac.uk/~kg365/pubs/ec2-fastlocks.pdf
+
+
+## Maven Coordinates
+
+The artifact is available from Maven Central as:
+
+```xml
+<dependency>
+    <groupId>com.evolvedbinary.multilock</groupId>
+    <artifactId>multilock</artifactId>
+    <version>1.0.1</version>
+</dependency>
+```
